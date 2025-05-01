@@ -1,0 +1,310 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ machine.name }} | Machines | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_list' %}" class="btn btn-secondary">← Back to Machines</a>
+    </div>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <h2>Machine: {{ machine.machine_id }} - {{ machine.name }}</h2>
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Left Column: Basic Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Basic Information</h3>
+            <table>
+                <tr>
+                    <th>Machine ID:</th>
+                    <td>{{ machine.machine_id }}</td>
+                </tr>
+                <tr>
+                    <th>Name:</th>
+                    <td>{{ machine.name }}</td>
+                </tr>
+                <tr>
+                    <th>Type:</th>
+                    <td>{{ machine.machine_type.name }} ({{ machine.machine_type.code }})</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        <span style="
+                            display: inline-block;
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 4px;
+                            {% if machine.status == 'active' %}
+                                background-color: #d4edda;
+                                color: #155724;
+                            {% elif machine.status == 'maintenance' %}
+                                background-color: #fff3cd;
+                                color: #856404;
+                            {% else %}
+                                background-color: #f8d7da;
+                                color: #721c24;
+                            {% endif %}
+                        ">
+                            {{ machine.get_status_display }}
+                        </span>
+                        <form method="post" action="{% url 'workshop_app:machine_status_update' machine.machine_id %}" style="display: inline-block; margin-left: 1rem;">
+                            {% csrf_token %}
+                            <select name="status" onchange="this.form.submit()">
+                                {% for value, display in machine.STATUS_CHOICES %}
+                                    <option value="{{ value }}" {% if machine.status == value %}selected{% endif %}>
+                                        {{ display }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Serial Number:</th>
+                    <td>{{ machine.serial_number|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Manufacturer:</th>
+                    <td>{{ machine.manufacturer|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Model Number:</th>
+                    <td>{{ machine.model_number|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Location:</th>
+                    <td>{{ machine.location_in_workshop|default:"Not specified" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Purchase Information</h3>
+            <table>
+                <tr>
+                    <th>Purchase Date:</th>
+                    <td>{{ machine.purchase_date|date:"Y-m-d"|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Purchase Price:</th>
+                    <td>{% if machine.purchase_price %}CHF{{ machine.purchase_price }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Supplier:</th>
+                    <td>{{ machine.supplier|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Warranty End Date:</th>
+                    <td>{{ machine.warranty_end_date|date:"Y-m-d"|default:"Not specified" }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Right Column: Technical Specs & Cost Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Technical Specifications</h3>
+            <table>
+                <tr>
+                    <th>Working Area:</th>
+                    <td>{{ machine.working_area|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Power Requirements:</th>
+                    <td>{{ machine.power_requirements|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Maximum Work Speed:</th>
+                    <td>{{ machine.maximum_work_speed|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Precision:</th>
+                    <td>{{ machine.precision|default:"Not specified" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Operational Costs</h3>
+            <table>
+                <tr>
+                    <th>Hourly Rate:</th>
+                    <td>{% if machine.hourly_rate %}€{{ machine.hourly_rate }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Setup Time:</th>
+                    <td>{% if machine.setup_time %}{{ machine.setup_time }} minutes{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Setup Rate:</th>
+                    <td>{% if machine.setup_rate %}€{{ machine.setup_rate }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Cleanup Time:</th>
+                    <td>{% if machine.cleanup_time %}{{ machine.cleanup_time }} minutes{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Cleanup Rate:</th>
+                    <td>{% if machine.cleanup_rate %}€{{ machine.cleanup_rate }}{% else %}Not specified{% endif %}</td>
+                </tr>
+            </table>
+            
+            <h3>Usage Statistics</h3>
+            <table>
+                <tr>
+                    <th>Total Usage:</th>
+                    <td>{{ total_usage_hours|floatformat:1 }} hours</td>
+                </tr>
+                <tr>
+                    <th>Total Usage Cost:</th>
+                    <td>€{{ total_usage_cost|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <th>Total Maintenance Cost:</th>
+                    <td>€{{ total_maintenance_cost|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Machine Consumables -->
+    <h3>Consumables</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Part Number</th>
+                <th>Current Stock</th>
+                <th>Cost per Unit</th>
+                <th>Lifetime (hours)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for consumable in consumables %}
+                <tr {% if consumable.is_low_stock %}style="color: red;"{% endif %}>
+                    <td>{{ consumable.name }}</td>
+                    <td>{{ consumable.part_number|default:"-" }}</td>
+                    <td>{{ consumable.current_stock }}</td>
+                    <td>€{{ consumable.cost_per_unit }}</td>
+                    <td>{{ consumable.expected_lifetime_hours|default:"-" }}</td>
+                    <td>
+                        {% if consumable.is_low_stock %}
+                            <span style="color: red;">Low Stock</span>
+                        {% else %}
+                            OK
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No consumables defined for this machine.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Machine Usage History -->
+    <h3>Recent Usage</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Duration</th>
+                <th>Setup Time</th>
+                <th>Cleanup Time</th>
+                <th>Job Reference</th>
+                <th>Operator</th>
+                <th>Total Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usage in usage_records %}
+                <tr>
+                    <td>{{ usage.start_time|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if usage.end_time %}
+                            {{ usage.get_duration_display }}
+                        {% else %}
+                            <span style="color: #856404;">In Progress</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ usage.setup_time }} min</td>
+                    <td>{{ usage.cleanup_time }} min</td>
+                    <td>{{ usage.job_reference|default:"-" }}</td>
+                    <td>{{ usage.operator_name|default:"Unknown" }}</td>
+                    <td>
+                        {% if usage.total_cost %}
+                            €{{ usage.total_cost|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7">No usage records available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if machine.usage_records.count > 10 %}
+        <div style="text-align: right; margin-top: 0.5rem;">
+            <small>Showing 10 most recent usage records.</small>
+        </div>
+    {% endif %}
+    
+    <!-- Machine Maintenance History -->
+    <h3>Maintenance History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Performed By</th>
+                <th>Tasks</th>
+                <th>Issues Found</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for maintenance in maintenance_records %}
+                <tr>
+                    <td>{{ maintenance.maintenance_date|date:"Y-m-d" }}</td>
+                    <td>{{ maintenance.get_maintenance_type_display }}</td>
+                    <td>{{ maintenance.performed_by }}</td>
+                    <td>{{ maintenance.tasks_performed|truncatechars:50 }}</td>
+                    <td>{{ maintenance.issues_found|truncatechars:50|default:"-" }}</td>
+                    <td>
+                        {% if maintenance.total_cost %}
+                            €{{ maintenance.total_cost|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No maintenance records available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if machine.maintenance_records.count > 10 %}
+        <div style="text-align: right; margin-top: 0.5rem;">
+            <small>Showing 10 most recent maintenance records.</small>
+        </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'workshop_app:machine_update' machine.machine_id %}" class="btn">Edit Machine</a>
+        <a href="{% url 'workshop_app:machine_usage_add' machine.machine_id %}" class="btn">Record Usage</a>
+        <a href="{% url 'workshop_app:machine_maintenance_add' machine.machine_id %}" class="btn">Record Maintenance</a>
+        <a href="{% url 'workshop_app:machine_consumable_add' machine.machine_id %}" class="btn">Add Consumable</a>
+        <a href="{% url 'workshop_app:machine_delete' machine.machine_id %}" class="btn btn-secondary">Delete Machine</a>
+    </div>
+{% endblock %}

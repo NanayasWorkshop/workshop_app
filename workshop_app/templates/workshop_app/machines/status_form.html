@@ -1,0 +1,63 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Update Machine Status | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">← Back to Machine</a>
+    </div>
+    
+    <h2>Update Machine Status</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Machine Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Machine ID:</th>
+                    <td>{{ machine.machine_id }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ machine.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Current Status:</th>
+                    <td>{{ machine.get_status_display }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>Update Status</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="status">New Status:</label>
+                <select id="status" name="status" style="width: 100%;" required>
+                    {% for value, display in status_choices %}
+                        <option value="{{ value }}" {% if machine.status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Update Status</button>
+                <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

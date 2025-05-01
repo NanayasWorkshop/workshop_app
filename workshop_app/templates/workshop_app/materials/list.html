@@ -86,7 +86,7 @@
                     <td>{{ material.material_type.name }}</td>
                     <td>{{ material.current_stock }}</td>
                     <td>{{ material.unit_of_measurement }}</td>
-                    <td>{% if material.price_per_unit %}€{{ material.price_per_unit }}{% else %}-{% endif %}</td>
+                    <td>{% if material.price_per_unit %}CHF{{ material.price_per_unit }}{% else %}-{% endif %}</td>
                     <td>{{ material.location_in_workshop|default:"-" }}</td>
                     <td>
                         <a href="{% url 'workshop_app:material_detail' material.material_id %}" class="btn">View</a>
