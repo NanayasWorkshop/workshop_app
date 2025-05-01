@@ -1,7 +1,10 @@
 from .material_views import (
     material_list, material_detail, 
     material_create, material_update, material_delete,
-    material_entry_add
+    material_entry_add, material_attachment_delete
+)
+from .attachment_views import (
+    material_attachment_view, material_attachment_download
 )
 from .scanner_views import (
     scanner_view, material_lookup, material_transaction,
@@ -20,5 +23,7 @@ from .machine_scanner_views import (
     quick_maintenance_report
 )
 from .test_view import test_view
+from .user_views import profile_view
+from .dashboard_view import dashboard_view
 
 # This allows importing views directly from the views module

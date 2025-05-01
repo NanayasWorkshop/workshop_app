@@ -105,17 +105,19 @@
     <header class="header">
         <div class="container">
             <h1>Workshop Management System</h1>
+            
             <nav>
                 <ul class="nav">
-                    <li><a href="{% url 'workshop_app:test' %}">Test View</a></li>
+                    <li><a href="{% url 'workshop_app:home' %}">Dashboard</a></li>
                     <li><a href="{% url 'workshop_app:material_list' %}">Materials</a></li>
                     <li><a href="{% url 'workshop_app:machine_list' %}">Machines</a></li>
-                    <li><a href="#">Jobs</a></li>
-                    <li><a href="#">Quotes</a></li>
                     <li><a href="{% url 'workshop_app:scanner' %}">Material Scanner</a></li>
                     <li><a href="{% url 'workshop_app:machine_scanner' %}">Machine Scanner</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                        <li><a href="{% url 'workshop_app:profile' %}">My Profile</a></li>
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                        {% endif %}
                         <li><a href="{% url 'logout' %}">Logout</a></li>
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>

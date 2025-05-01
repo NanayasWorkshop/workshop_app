@@ -1,0 +1,162 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Dashboard | Workshop Management System{% endblock %}
+
+{% block content %}
+    <h2>Workshop Management Dashboard</h2>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Dashboard Statistics Section -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <!-- Materials Stats -->
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">Materials</h3>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">{{ stats.materials_count }}</div>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold; {% if stats.low_stock_count > 0 %}color: red;{% endif %}">{{ stats.low_stock_count }}</div>
+                    <div>Low Stock</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.categories_count }}</div>
+                    <div>Categories</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.types_count }}</div>
+                    <div>Types</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="{% url 'workshop_app:material_list' %}" class="btn">View All</a>
+            </div>
+        </div>
+        
+        <!-- Machines Stats -->
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">Machines</h3>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">{{ stats.machines_count }}</div>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.active_machines }}</div>
+                    <div>Active</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.maintenance_machines }}</div>
+                    <div>Maintenance</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.out_of_order_machines }}</div>
+                    <div>Out of Order</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="{% url 'workshop_app:machine_list' %}" class="btn">View All</a>
+            </div>
+        </div>
+        
+        <!-- User Stats -->
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">System</h3>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">{{ stats.operators_count }}</div>
+            <div>Operators</div>
+            <div style="margin-top: 1rem;">
+                <div>Current User: <strong>{{ user.get_full_name|default:user.username }}</strong></div>
+                <div>Last Login: {{ user.last_login|date:"Y-m-d H:i" }}</div>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="{% url 'workshop_app:profile' %}" class="btn">Profile</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions Section -->
+    <h3>Quick Actions</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <a href="{% url 'workshop_app:material_create' %}" style="flex: 1; min-width: 200px; background-color: #007bff; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 1.2rem; font-weight: bold;">Add New Material</div>
+        </a>
+        <a href="{% url 'workshop_app:machine_create' %}" style="flex: 1; min-width: 200px; background-color: #28a745; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 1.2rem; font-weight: bold;">Add New Machine</div>
+        </a>
+        <a href="{% url 'workshop_app:scanner' %}" style="flex: 1; min-width: 200px; background-color: #6f42c1; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 1.2rem; font-weight: bold;">Material Scanner</div>
+        </a>
+        <a href="{% url 'workshop_app:machine_scanner' %}" style="flex: 1; min-width: 200px; background-color: #fd7e14; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 1.2rem; font-weight: bold;">Machine Scanner</div>
+        </a>
+    </div>
+    
+    <!-- Recent Activities Section -->
+    <h3>Recent Activities</h3>
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        {% if recent_transactions %}
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Material</th>
+                        <th>Action</th>
+                        <th>Quantity</th>
+                        <th>Operator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.transaction_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ transaction.material.name }}</td>
+                            <td>
+                                {% if transaction.transaction_type == 'consumption' %}
+                                    <span style="color: red;">Used</span>
+                                {% else %}
+                                    <span style="color: green;">Returned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.quantity }} {{ transaction.material.unit_of_measurement }}</td>
+                            <td>{{ transaction.operator_name|default:"Unknown" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No recent material transactions found.</p>
+        {% endif %}
+        
+        {% if recent_usages %}
+            <h4 style="margin-top: 1.5rem;">Recent Machine Usage</h4>
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Machine</th>
+                        <th>Duration</th>
+                        <th>Operator</th>
+                        <th>Job Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usage in recent_usages %}
+                        <tr>
+                            <td>{{ usage.start_time|date:"Y-m-d H:i" }}</td>
+                            <td>{{ usage.machine.name }}</td>
+                            <td>{{ usage.get_duration_display }}</td>
+                            <td>{{ usage.operator_name|default:"Unknown" }}</td>
+                            <td>{{ usage.job_reference|default:"-" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No recent machine usage found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

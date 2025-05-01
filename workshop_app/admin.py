@@ -1,8 +1,7 @@
 from django.contrib import admin
 from .models import (
     MaterialCategory, MaterialType, Material, MaterialEntry, MaterialTransaction,
-    MachineType, Machine,
-    Operator
+    MachineType, Machine, Operator, AttachmentType, MaterialAttachment
 )
 
 # Material admin classes
@@ -27,17 +26,22 @@ class MaterialEntryInline(admin.TabularInline):
     extra = 1
     fields = ('quantity', 'price_per_unit', 'purchase_date', 'receipt', 'supplier_name')
 
+class MaterialAttachmentInline(admin.TabularInline):
+    model = MaterialAttachment
+    extra = 1
+    fields = ('attachment_type', 'custom_type', 'description', 'file')
+
 @admin.register(Material)
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('material_id', 'serial_number', 'name', 'material_type', 'current_stock', 
-                   'unit_of_measurement', 'price_per_unit', 'location_in_workshop', 'is_low_stock')
-    list_filter = ('material_type', 'minimum_stock_alert', 'unit_of_measurement')
-    search_fields = ('material_id', 'serial_number', 'name', 'supplier_name', 'brand_name')
-    readonly_fields = ('qr_code',)
-    inlines = [MaterialEntryInline]
+    list_display = ('material_id', 'serial_number', 'name', 'material_type', 'color', 'current_stock', 
+                   'unit_of_measurement', 'price_per_unit', 'location_in_workshop', 'is_low_stock', 'created_by')
+    list_filter = ('material_type__category', 'material_type', 'minimum_stock_alert', 'unit_of_measurement')
+    search_fields = ('material_id', 'serial_number', 'supplier_sku', 'name', 'supplier_name', 'brand_name')
+    readonly_fields = ('qr_code', 'material_id', 'created_by', 'created_at', 'updated_at')
+    inlines = [MaterialEntryInline, MaterialAttachmentInline]
     fieldsets = (
         ('Basic Information', {
-            'fields': ('material_id', 'serial_number', 'name', 'material_type', 'color', 'dimensions', 'unit_of_measurement')
+            'fields': ('material_id', 'serial_number', 'supplier_sku', 'name', 'material_type', 'color', 'dimensions', 'unit_of_measurement')
         }),
         ('Supplier Information', {
             'fields': ('supplier_name', 'brand_name')
@@ -48,10 +52,18 @@ class MaterialAdmin(admin.ModelAdmin):
         ('Price Information', {
             'fields': ('price_per_unit', 'purchase_date', 'expiration_date')
         }),
+        ('Tracking Information', {
+            'fields': ('created_by', 'created_at', 'updated_at')
+        }),
         ('Additional Information', {
             'fields': ('project_association', 'notes', 'qr_code')
         }),
     )
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Only set created_by for new objects
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
 
 @admin.register(MaterialEntry)
 class MaterialEntryAdmin(admin.ModelAdmin):
@@ -66,6 +78,22 @@ class MaterialTransactionAdmin(admin.ModelAdmin):
     list_filter = ('transaction_type', 'transaction_date')
     search_fields = ('material__material_id', 'material__name', 'job_reference', 'operator_name', 'notes')
     date_hierarchy = 'transaction_date'
+
+@admin.register(AttachmentType)
+class AttachmentTypeAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+
+@admin.register(MaterialAttachment)
+class MaterialAttachmentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'material', 'get_type_display', 'description', 'uploaded_by', 'upload_date')
+    list_filter = ('attachment_type', 'upload_date')
+    search_fields = ('material__material_id', 'material__name', 'description', 'custom_type')
+    date_hierarchy = 'upload_date'
+    
+    def get_type_display(self, obj):
+        return obj.get_type_display()
+    get_type_display.short_description = 'Type'
 
 # Machine admin classes
 @admin.register(MachineType)

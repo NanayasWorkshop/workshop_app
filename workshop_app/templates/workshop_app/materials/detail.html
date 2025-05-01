@@ -17,7 +17,7 @@
         </div>
     {% endif %}
     
-    <h2>Material: {{ material.material_id }} - {{ material.name }}</h2>
+    <h2>Material: {{ material.get_display_name }}</h2>
     
     {% if material.is_low_stock %}
         <div class="low-stock">
@@ -38,6 +38,12 @@
                 <tr>
                     <th>Serial Number:</th>
                     <td>{{ material.serial_number }}</td>
+                </tr>
+                {% endif %}
+                {% if material.supplier_sku %}
+                <tr>
+                    <th>Supplier SKU:</th>
+                    <td>{{ material.supplier_sku }}</td>
                 </tr>
                 {% endif %}
                 <tr>
@@ -63,6 +69,16 @@
                 <tr>
                     <th>Location:</th>
                     <td>{{ material.location_in_workshop|default:"Not specified" }}</td>
+                </tr>
+                {% if material.created_by %}
+                <tr>
+                    <th>Created By:</th>
+                    <td>{{ material.created_by.get_full_name|default:material.created_by.username }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Created On:</th>
+                    <td>{{ material.created_at|date:"Y-m-d H:i" }}</td>
                 </tr>
             </table>
             
@@ -143,6 +159,95 @@
                 <p>No QR code available.</p>
             {% endif %}
         </div>
+    </div>
+    
+    <!-- Attachments Section -->
+    <h3>Attachments</h3>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        {% for attachment in attachments %}
+            <div style="border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; width: 200px;">
+                <div style="text-align: center; margin-bottom: 0.5rem;">
+                    {% if attachment.is_image %}
+                        <img src="{{ attachment.file.url }}" alt="{{ attachment.description }}" style="max-width: 100%; max-height: 100px;">
+                    {% elif attachment.is_pdf %}
+                        <div style="font-size: 3rem; color: #dc3545;">
+                            <i class="fas fa-file-pdf"></i>
+                            📄
+                        </div>
+                    {% else %}
+                        <div style="font-size: 3rem; color: #007bff;">
+                            <i class="fas fa-file"></i>
+                            📁
+                        </div>
+                    {% endif %}
+                </div>
+                <p style="margin: 0.25rem 0; font-weight: bold;">{{ attachment.get_type_display }}</p>
+                {% if attachment.description %}
+                    <p style="margin: 0.25rem 0; font-size: 0.9rem;">{{ attachment.description }}</p>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem;">
+                    <a href="{% url 'workshop_app:material_attachment_view' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">View</a>
+                    <a href="{% url 'workshop_app:material_attachment_download' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Download</a>
+                    <a href="{% url 'workshop_app:material_attachment_delete' attachment.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</a>
+                </div>
+            </div>
+        {% empty %}
+            <p>No attachments available.</p>
+        {% endfor %}
+    </div>
+    
+    <!-- Upload Attachment Form -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <h4>Upload New Attachment</h4>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="upload_attachment" value="1">
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ attachment_form.attachment_type.id_for_label }}">Type:</label>
+                    {{ attachment_form.attachment_type }}
+                    {% if attachment_form.attachment_type.errors %}
+                        <div style="color: red;">{{ attachment_form.attachment_type.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ attachment_form.new_type.id_for_label }}">Or New Type:</label>
+                    {{ attachment_form.new_type }}
+                    {% if attachment_form.new_type.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.new_type.help_text }}</div>
+                    {% endif %}
+                    {% if attachment_form.new_type.errors %}
+                        <div style="color: red;">{{ attachment_form.new_type.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ attachment_form.description.id_for_label }}">Description:</label>
+                {{ attachment_form.description }}
+                {% if attachment_form.description.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.description.help_text }}</div>
+                {% endif %}
+                {% if attachment_form.description.errors %}
+                    <div style="color: red;">{{ attachment_form.description.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ attachment_form.file.id_for_label }}">File:</label>
+                {{ attachment_form.file }}
+                {% if attachment_form.file.errors %}
+                    <div style="color: red;">{{ attachment_form.file.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Upload Attachment</button>
+            </div>
+        </form>
     </div>
     
     <!-- Material Entry History -->

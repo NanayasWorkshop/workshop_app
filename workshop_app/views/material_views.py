@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
-from ..models import Material, MaterialCategory, MaterialType, MaterialEntry
-from ..forms import MaterialForm, MaterialEntryForm
+from ..models import Material, MaterialCategory, MaterialType, MaterialEntry, MaterialAttachment, AttachmentType
+from ..forms import MaterialForm, MaterialEntryForm, MaterialAttachmentForm
 
 
 @login_required
@@ -33,7 +35,8 @@ def material_list(request):
             Q(name__icontains=search_query) | 
             Q(material_id__icontains=search_query) |
             Q(supplier_name__icontains=search_query) |
-            Q(serial_number__icontains=search_query)
+            Q(serial_number__icontains=search_query) |
+            Q(supplier_sku__icontains=search_query)
         )
     
     # Get all categories for the filter dropdown
@@ -74,9 +77,33 @@ def material_detail(request, material_id):
     # Get material entries for history
     entries = material.entries.all().order_by('-purchase_date')
     
+    # Get material attachments
+    attachments = material.attachments.all().order_by('attachment_type', 'upload_date')
+    
+    # Handle attachment upload
+    if request.method == 'POST' and 'upload_attachment' in request.POST:
+        attachment_form = MaterialAttachmentForm(
+            request.POST, 
+            request.FILES,
+            material=material,
+            user=request.user
+        )
+        if attachment_form.is_valid():
+            attachment_form.save()
+            messages.success(request, 'Attachment uploaded successfully.')
+            return HttpResponseRedirect(request.path)
+    else:
+        attachment_form = MaterialAttachmentForm(material=material, user=request.user)
+    
+    # Get available attachment types for dropdown
+    attachment_types = AttachmentType.objects.all()
+    
     context = {
         'material': material,
         'entries': entries,
+        'attachments': attachments,
+        'attachment_form': attachment_form,
+        'attachment_types': attachment_types,
     }
     
     return render(request, 'workshop_app/materials/detail.html', context)
@@ -98,6 +125,7 @@ def material_create(request):
                 material.current_stock = 0
                 material.price_per_unit = entry_form.cleaned_data['price_per_unit']
                 material.purchase_date = entry_form.cleaned_data['purchase_date']
+                material.created_by = request.user  # Set the creator
                 material.save()
                 
                 # Create entry linked to the material
@@ -198,3 +226,24 @@ def material_delete(request, material_id):
     }
     
     return render(request, 'workshop_app/materials/confirm_delete.html', context)
+
+
+@login_required
+def material_attachment_delete(request, attachment_id):
+    """
+    Delete a material attachment.
+    """
+    attachment = get_object_or_404(MaterialAttachment, id=attachment_id)
+    material = attachment.material
+    
+    if request.method == 'POST':
+        attachment.delete()
+        messages.success(request, 'Attachment deleted successfully.')
+        return redirect('workshop_app:material_detail', material_id=material.material_id)
+    
+    context = {
+        'attachment': attachment,
+        'material': material,
+    }
+    
+    return render(request, 'workshop_app/materials/attachment_confirm_delete.html', context)

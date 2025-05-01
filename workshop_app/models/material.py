@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.files.base import ContentFile
+from django.contrib.auth.models import User
+from django.utils import timezone
 import qrcode
 import io
 from PIL import Image
@@ -31,12 +33,17 @@ class MaterialType(models.Model):
     def __str__(self):
         return f"{self.category.code}-{self.code} - {self.name}"
 
+    def get_display_code(self):
+        """Get the combined code for this material type"""
+        return f"{self.category.code}-{self.code}"
+
 
 class Material(models.Model):
     """Individual material entries"""
     # Basic Info
     material_id = models.CharField(max_length=15, unique=True)  # PRT-PLA-0001
     serial_number = models.CharField(max_length=50, blank=True, help_text="Manufacturer's serial number if applicable")
+    supplier_sku = models.CharField(max_length=50, blank=True, help_text="Supplier's SKU or product code")
     name = models.CharField(max_length=100)
     material_type = models.ForeignKey(MaterialType, on_delete=models.CASCADE, related_name='materials')
     color = models.CharField(max_length=50, blank=True)
@@ -58,15 +65,38 @@ class Material(models.Model):
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     expiration_date = models.DateField(null=True, blank=True)
     
+    # User Tracking - using default value to handle existing rows
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_materials')
+    created_at = models.DateTimeField(default=timezone.now)  # Using default instead of auto_now_add
+    updated_at = models.DateTimeField(auto_now=True)
+    
     # Optional
     project_association = models.CharField(max_length=100, blank=True)
     notes = models.TextField(blank=True)
     qr_code = models.ImageField(upload_to='qr_codes/materials/', blank=True)
     
     def __str__(self):
-        return f"{self.material_id} - {self.name}"
+        display = f"{self.material_id} - {self.name}"
+        if self.color:
+            display += f" - {self.color}"
+        return display
+    
+    def get_display_name(self):
+        """Get a display name with type code and color"""
+        display = f"{self.material_type.get_display_code()} - {self.name}"
+        if self.color:
+            display += f" - {self.color}"
+        return display
     
     def save(self, *args, **kwargs):
+        # Auto-generate material_id if it's a new record
+        if not self.pk and not self.material_id:
+            self.generate_material_id()
+            
+        # Set created_at for new objects only
+        if not self.pk:
+            self.created_at = timezone.now()
+            
         # Generate QR code if it doesn't exist and material_id is set
         if not self.qr_code and self.material_id:
             qr = qrcode.QRCode(
@@ -91,6 +121,41 @@ class Material(models.Model):
         
         # Call the parent save method
         super().save(*args, **kwargs)
+    
+    def generate_material_id(self):
+        """Auto-generate material ID using category, type and serial number"""
+        # Get the category and type codes
+        category_code = self.material_type.category.code
+        type_code = self.material_type.code
+        
+        # Base part of the ID
+        base_id = f"{category_code}-{type_code}-"
+        
+        # Try to use last 4 digits of serial number if available
+        if self.serial_number and len(self.serial_number) >= 4:
+            # Get last 4 digits, or pad with zeros if shorter
+            last_digits = self.serial_number[-4:].zfill(4)
+            self.material_id = f"{base_id}{last_digits}"
+        else:
+            # If no serial number, find the next available number
+            # Get the highest number for this category and type
+            existing_materials = Material.objects.filter(
+                material_id__startswith=base_id
+            ).order_by('-material_id')
+            
+            if existing_materials.exists():
+                # Extract the number part and increment
+                last_id = existing_materials.first().material_id
+                try:
+                    last_number = int(last_id.split('-')[-1])
+                    next_number = last_number + 1
+                except (ValueError, IndexError):
+                    next_number = 1
+            else:
+                next_number = 1
+                
+            # Format with leading zeros
+            self.material_id = f"{base_id}{next_number:04d}"
     
     def is_low_stock(self):
         """Check if the material is running low on stock"""

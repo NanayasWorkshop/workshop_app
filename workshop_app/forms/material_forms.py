@@ -6,7 +6,7 @@ class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
         fields = [
-            'material_id', 'serial_number', 'name', 'material_type', 
+            'material_id', 'serial_number', 'supplier_sku', 'name', 'material_type', 
             'color', 'dimensions', 'unit_of_measurement',
             'supplier_name', 'brand_name',
             'minimum_stock_level', 'minimum_stock_alert', 'location_in_workshop',
@@ -15,31 +15,28 @@ class MaterialForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
             'expiration_date': forms.DateInput(attrs={'type': 'date'}),
+            'material_id': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
-    
-    def clean_material_id(self):
-        """Validate material ID format"""
-        material_id = self.cleaned_data['material_id']
-        
-        # Check if it follows the expected format (e.g., PRT-PLA-0001)
-        if not material_id or len(material_id.split('-')) != 3:
-            raise forms.ValidationError(
-                "Material ID must follow the format: CATEGORY-TYPE-NUMBER (e.g., PRT-PLA-0001)"
-            )
-        
-        return material_id
     
     def __init__(self, *args, **kwargs):
         """Override init to set initial values and customize form"""
         super().__init__(*args, **kwargs)
         
         # Add help text
-        self.fields['material_id'].help_text = "Format: CATEGORY-TYPE-NUMBER (e.g., PRT-PLA-0001)"
+        self.fields['material_id'].help_text = "Auto-generated from material type and serial number"
         self.fields['serial_number'].help_text = "Manufacturer's serial number or blank if none"
+        self.fields['supplier_sku'].help_text = "Supplier's SKU or product code"
         
         # Make certain fields required
         self.fields['material_type'].required = True
         self.fields['unit_of_measurement'].required = True
+        
+        # Make material_id readonly for existing records, hide for new ones
+        if self.instance.pk:
+            self.fields['material_id'].widget.attrs['readonly'] = True
+        else:
+            self.fields['material_id'].required = False
+            self.fields['material_id'].widget = forms.HiddenInput()
 
 class MaterialEntryForm(forms.ModelForm):
     """Form for adding new material entries with receipt upload"""
