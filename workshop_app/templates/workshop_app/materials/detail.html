@@ -1,0 +1,191 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ material.name }} | Materials | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:material_list' %}" class="btn btn-secondary">← Back to Materials</a>
+    </div>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <h2>Material: {{ material.material_id }} - {{ material.name }}</h2>
+    
+    {% if material.is_low_stock %}
+        <div class="low-stock">
+            <p>Warning: This material is below the minimum stock level!</p>
+        </div>
+    {% endif %}
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Left Column: Basic Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Basic Information</h3>
+            <table>
+                <tr>
+                    <th>Material ID:</th>
+                    <td>{{ material.material_id }}</td>
+                </tr>
+                {% if material.serial_number %}
+                <tr>
+                    <th>Serial Number:</th>
+                    <td>{{ material.serial_number }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Name:</th>
+                    <td>{{ material.name }}</td>
+                </tr>
+                <tr>
+                    <th>Category:</th>
+                    <td>{{ material.material_type.category.name }} ({{ material.material_type.category.code }})</td>
+                </tr>
+                <tr>
+                    <th>Type:</th>
+                    <td>{{ material.material_type.name }} ({{ material.material_type.code }})</td>
+                </tr>
+                <tr>
+                    <th>Color:</th>
+                    <td>{{ material.color|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Dimensions:</th>
+                    <td>{{ material.dimensions|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Location:</th>
+                    <td>{{ material.location_in_workshop|default:"Not specified" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Supplier Information</h3>
+            <table>
+                <tr>
+                    <th>Supplier:</th>
+                    <td>{{ material.supplier_name|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Brand:</th>
+                    <td>{{ material.brand_name|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Purchase Date:</th>
+                    <td>{{ material.purchase_date|date:"Y-m-d"|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Price per Unit:</th>
+                    <td>{% if material.price_per_unit %}€{{ material.price_per_unit }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Expiration Date:</th>
+                    <td>{{ material.expiration_date|date:"Y-m-d"|default:"Not applicable" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Notes</h3>
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                {% if material.notes %}
+                    {{ material.notes|linebreaks }}
+                {% else %}
+                    <p>No notes available.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right Column: Stock Info and QR Code -->
+        <div style="flex: 1; min-width: 300px;">
+            <h3>Inventory Information</h3>
+            <table>
+                <tr>
+                    <th>Current Stock:</th>
+                    <td {% if material.is_low_stock %}class="low-stock"{% endif %}>
+                        {{ material.current_stock }} {{ material.unit_of_measurement }}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Minimum Stock Level:</th>
+                    <td>
+                        {% if material.minimum_stock_level %}
+                            {{ material.minimum_stock_level }} {{ material.unit_of_measurement }}
+                        {% else %}
+                            Not set
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Low Stock Alert:</th>
+                    <td>{{ material.minimum_stock_alert|yesno:"Enabled,Disabled" }}</td>
+                </tr>
+                <tr>
+                    <th>Project Association:</th>
+                    <td>{{ material.project_association|default:"None" }}</td>
+                </tr>
+            </table>
+            
+            <h3>QR Code</h3>
+            {% if material.qr_code %}
+                <div style="text-align: center; margin: 1rem 0;">
+                    <img src="{{ material.qr_code.url }}" alt="QR Code for {{ material.material_id }}" style="max-width: 100%;">
+                    <p>Material ID: {{ material.material_id }}</p>
+                    {% if material.serial_number %}
+                    <p>Serial Number: {{ material.serial_number }}</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>No QR code available.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Material Entry History -->
+    <h3>Purchase History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Quantity</th>
+                <th>Price per Unit</th>
+                <th>Supplier</th>
+                <th>Receipt</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.purchase_date|date:"Y-m-d" }}</td>
+                    <td>{{ entry.quantity }} {{ material.unit_of_measurement }}</td>
+                    <td>€{{ entry.price_per_unit }}</td>
+                    <td>{{ entry.supplier_name|default:"Not specified" }}</td>
+                    <td>
+                        {% if entry.receipt %}
+                            <a href="{{ entry.receipt.url }}" target="_blank" class="btn">View Receipt</a>
+                        {% else %}
+                            No receipt
+                        {% endif %}
+                    </td>
+                    <td>{{ entry.notes|truncatechars:50 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No purchase history available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <a href="{% url 'workshop_app:material_update' material.material_id %}" class="btn">Edit Material</a>
+        <a href="{% url 'workshop_app:material_entry_add' material.material_id %}" class="btn">Add Purchase</a>
+        <a href="{% url 'workshop_app:material_delete' material.material_id %}" class="btn btn-secondary">Delete Material</a>
+        <a href="#" class="btn btn-secondary" onclick="window.print();">Print QR Code</a>
+    </div>
+{% endblock %}

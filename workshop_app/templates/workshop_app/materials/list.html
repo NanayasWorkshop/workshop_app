@@ -1,0 +1,106 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Materials Inventory | Workshop Management System{% endblock %}
+
+{% block content %}
+    <h2>Materials Inventory</h2>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if low_stock_count > 0 %}
+        <div class="low-stock">
+            <p>Warning: {{ low_stock_count }} materials are below minimum stock levels!</p>
+        </div>
+    {% endif %}
+    
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <form method="get">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <div>
+                    <label for="category">Category:</label>
+                    <select name="category" id="category" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.code }}" {% if selected_category == category.code %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="type">Type:</label>
+                    <select name="type" id="type" {% if not selected_category %}disabled{% endif %}>
+                        <option value="">All Types</option>
+                        {% for type in material_types %}
+                            <option value="{{ type.code }}" {% if selected_type == type.code %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="search">Search:</label>
+                    <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="ID, Name, SN or Supplier">
+                </div>
+                
+                <div>
+                    <button type="submit" class="btn">Filter</button>
+                    <a href="{% url 'workshop_app:material_list' %}" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Materials Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Material ID</th>
+                <th>Serial Number</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Current Stock</th>
+                <th>Unit</th>
+                <th>Price</th>
+                <th>Location</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %}
+                <tr {% if material.is_low_stock %}class="low-stock"{% endif %}>
+                    <td>{{ material.material_id }}</td>
+                    <td>{{ material.serial_number|default:"-" }}</td>
+                    <td>{{ material.name }}</td>
+                    <td>{{ material.material_type.name }}</td>
+                    <td>{{ material.current_stock }}</td>
+                    <td>{{ material.unit_of_measurement }}</td>
+                    <td>{% if material.price_per_unit %}€{{ material.price_per_unit }}{% else %}-{% endif %}</td>
+                    <td>{{ material.location_in_workshop|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'workshop_app:material_detail' material.material_id %}" class="btn">View</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9">No materials found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 1rem;">
+        <a href="{% url 'workshop_app:material_create' %}" class="btn">Add New Material</a>
+    </div>
+{% endblock %}

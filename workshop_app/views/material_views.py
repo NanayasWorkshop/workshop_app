@@ -1,0 +1,200 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import Q
+
+from ..models import Material, MaterialCategory, MaterialType, MaterialEntry
+from ..forms import MaterialForm, MaterialEntryForm
+
+
+@login_required
+def material_list(request):
+    """
+    Display a list of all materials in the inventory.
+    """
+    # Get filter parameters from request
+    category_code = request.GET.get('category', '')
+    type_code = request.GET.get('type', '')
+    search_query = request.GET.get('search', '')
+    
+    # Start with all materials
+    materials = Material.objects.all()
+    
+    # Apply filters if provided
+    if category_code:
+        materials = materials.filter(material_type__category__code=category_code)
+    
+    if type_code:
+        materials = materials.filter(material_type__code=type_code)
+    
+    if search_query:
+        materials = materials.filter(
+            Q(name__icontains=search_query) | 
+            Q(material_id__icontains=search_query) |
+            Q(supplier_name__icontains=search_query) |
+            Q(serial_number__icontains=search_query)
+        )
+    
+    # Get all categories for the filter dropdown
+    categories = MaterialCategory.objects.all()
+    
+    # Get material types based on selected category
+    material_types = []
+    if category_code:
+        material_types = MaterialType.objects.filter(category__code=category_code)
+    
+    # Count low stock items
+    low_stock_count = sum(1 for m in materials if m.is_low_stock())
+    
+    context = {
+        'materials': materials,
+        'categories': categories,
+        'material_types': material_types,
+        'selected_category': category_code,
+        'selected_type': type_code,
+        'search_query': search_query,
+        'low_stock_count': low_stock_count,
+    }
+    
+    return render(request, 'workshop_app/materials/list.html', context)
+
+
+@login_required
+def material_detail(request, material_id):
+    """
+    Display detailed information about a specific material.
+    """
+    # Try to find by material_id or serial_number
+    material = get_object_or_404(
+        Material, 
+        Q(material_id=material_id) | Q(serial_number=material_id)
+    )
+    
+    # Get material entries for history
+    entries = material.entries.all().order_by('-purchase_date')
+    
+    context = {
+        'material': material,
+        'entries': entries,
+    }
+    
+    return render(request, 'workshop_app/materials/detail.html', context)
+
+
+@login_required
+def material_create(request):
+    """
+    Create a new material and its first entry.
+    """
+    if request.method == 'POST':
+        form = MaterialForm(request.POST)
+        entry_form = MaterialEntryForm(request.POST, request.FILES)
+        
+        if form.is_valid() and entry_form.is_valid():
+            with transaction.atomic():
+                # Save material with zero stock first
+                material = form.save(commit=False)
+                material.current_stock = 0
+                material.price_per_unit = entry_form.cleaned_data['price_per_unit']
+                material.purchase_date = entry_form.cleaned_data['purchase_date']
+                material.save()
+                
+                # Create entry linked to the material
+                entry = entry_form.save(commit=False)
+                entry.material = material
+                entry.save()
+                
+                # Update material stock and price
+                material.update_price_and_stock()
+            
+            messages.success(request, 'Material created successfully.')
+            return redirect('workshop_app:material_detail', material_id=material.material_id)
+    else:
+        form = MaterialForm()
+        entry_form = MaterialEntryForm()
+    
+    context = {
+        'form': form,
+        'entry_form': entry_form,
+        'is_new': True,
+        'title': 'Add New Material',
+    }
+    
+    return render(request, 'workshop_app/materials/form.html', context)
+
+
+@login_required
+def material_update(request, material_id):
+    """
+    Update an existing material's information.
+    """
+    material = get_object_or_404(Material, material_id=material_id)
+    
+    if request.method == 'POST':
+        form = MaterialForm(request.POST, instance=material)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Material updated successfully.')
+            return redirect('workshop_app:material_detail', material_id=material.material_id)
+    else:
+        form = MaterialForm(instance=material)
+    
+    context = {
+        'form': form,
+        'material': material,
+        'is_new': False,
+        'title': 'Edit Material',
+    }
+    
+    return render(request, 'workshop_app/materials/form.html', context)
+
+
+@login_required
+def material_entry_add(request, material_id):
+    """
+    Add a new entry (purchase) to an existing material.
+    """
+    material = get_object_or_404(Material, material_id=material_id)
+    
+    if request.method == 'POST':
+        form = MaterialEntryForm(request.POST, request.FILES, material=material)
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.material = material
+            entry.save()
+            
+            # Update material average price and stock
+            material.update_price_and_stock()
+            
+            messages.success(request, 'Material entry added successfully.')
+            return redirect('workshop_app:material_detail', material_id=material.material_id)
+    else:
+        form = MaterialEntryForm(material=material)
+    
+    context = {
+        'form': form,
+        'material': material,
+        'title': 'Add Material Purchase Entry',
+    }
+    
+    return render(request, 'workshop_app/materials/entry_form.html', context)
+
+
+@login_required
+def material_delete(request, material_id):
+    """
+    Delete a material and all its entries.
+    """
+    material = get_object_or_404(Material, material_id=material_id)
+    
+    if request.method == 'POST':
+        material.delete()
+        messages.success(request, 'Material deleted successfully.')
+        return redirect('workshop_app:material_list')
+    
+    context = {
+        'material': material,
+    }
+    
+    return render(request, 'workshop_app/materials/confirm_delete.html', context)

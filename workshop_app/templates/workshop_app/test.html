@@ -1,0 +1,56 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}System Test | Workshop Management System{% endblock %}
+
+{% block content %}
+    <h2>System Test Page</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <p style="margin: 0;"><strong>Success!</strong> The workshop management system is running correctly.</p>
+        </div>
+        
+        <h3>Database Status</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Record Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, count in database_status.items %}
+                    <tr>
+                        <td>{{ model }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <h3>Quick Actions</h3>
+        <ul>
+            <li><a href="{% url 'workshop_app:material_list' %}">View Materials Inventory</a></li>
+            <li><a href="{% url 'admin:index' %}">Go to Admin Interface</a></li>
+        </ul>
+        
+        <h3>Setup Instructions</h3>
+        <ol>
+            <li>Make sure you've applied migrations:
+                <pre>python manage.py makemigrations
+python manage.py migrate</pre>
+            </li>
+            <li>Create a superuser (if not already done):
+                <pre>python manage.py createsuperuser</pre>
+            </li>
+            <li>Add some test data through the admin interface.</li>
+        </ol>
+        
+        <h3>Next Steps</h3>
+        <ol>
+            <li>Add material categories, types, and materials through the admin interface</li>
+            <li>Add machine types and machines</li>
+            <li>Set up user accounts and operators</li>
+        </ol>
+    </div>
+{% endblock %}

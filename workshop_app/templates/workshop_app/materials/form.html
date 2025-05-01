@@ -1,0 +1,369 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% if is_new %}{% url 'workshop_app:material_list' %}{% else %}{% url 'workshop_app:material_detail' material.material_id %}{% endif %}" class="btn btn-secondary">← Back</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 800px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% if is_new %}
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>Material Information</h3>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.material_id.id_for_label }}">Material ID:</label>
+                            {{ form.material_id }}
+                            {% if form.material_id.help_text %}
+                                <div style="font-size: 0.8rem; color: #666;">{{ form.material_id.help_text }}</div>
+                            {% endif %}
+                            {% if form.material_id.errors %}
+                                <div style="color: red;">{{ form.material_id.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.serial_number.id_for_label }}">Serial Number:</label>
+                            {{ form.serial_number }}
+                            {% if form.serial_number.help_text %}
+                                <div style="font-size: 0.8rem; color: #666;">{{ form.serial_number.help_text }}</div>
+                            {% endif %}
+                            {% if form.serial_number.errors %}
+                                <div style="color: red;">{{ form.serial_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.name.id_for_label }}">Material Name:</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div style="color: red;">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.material_type.id_for_label }}">Material Type:</label>
+                            {{ form.material_type }}
+                            {% if form.material_type.errors %}
+                                <div style="color: red;">{{ form.material_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.color.id_for_label }}">Color:</label>
+                            {{ form.color }}
+                            {% if form.color.errors %}
+                                <div style="color: red;">{{ form.color.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.dimensions.id_for_label }}">Dimensions:</label>
+                            {{ form.dimensions }}
+                            {% if form.dimensions.errors %}
+                                <div style="color: red;">{{ form.dimensions.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.unit_of_measurement.id_for_label }}">Unit of Measurement:</label>
+                            {{ form.unit_of_measurement }}
+                            {% if form.unit_of_measurement.errors %}
+                                <div style="color: red;">{{ form.unit_of_measurement.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>Initial Purchase Information</h3>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.quantity.id_for_label }}">Initial Quantity:</label>
+                            {{ entry_form.quantity }}
+                            {% if entry_form.quantity.errors %}
+                                <div style="color: red;">{{ entry_form.quantity.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.price_per_unit.id_for_label }}">Price per Unit:</label>
+                            {{ entry_form.price_per_unit }}
+                            {% if entry_form.price_per_unit.errors %}
+                                <div style="color: red;">{{ entry_form.price_per_unit.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.purchase_date.id_for_label }}">Purchase Date:</label>
+                            {{ entry_form.purchase_date }}
+                            {% if entry_form.purchase_date.errors %}
+                                <div style="color: red;">{{ entry_form.purchase_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.supplier_name.id_for_label }}">Supplier Name:</label>
+                            {{ entry_form.supplier_name }}
+                            {% if entry_form.supplier_name.errors %}
+                                <div style="color: red;">{{ entry_form.supplier_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.receipt.id_for_label }}">Receipt Upload:</label>
+                            {{ entry_form.receipt }}
+                            {% if entry_form.receipt.help_text %}
+                                <div style="font-size: 0.8rem; color: #666;">{{ entry_form.receipt.help_text }}</div>
+                            {% endif %}
+                            {% if entry_form.receipt.errors %}
+                                <div style="color: red;">{{ entry_form.receipt.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ entry_form.notes.id_for_label }}">Notes:</label>
+                            {{ entry_form.notes }}
+                            {% if entry_form.notes.errors %}
+                                <div style="color: red;">{{ entry_form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Inventory Management</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.minimum_stock_level.id_for_label }}">Minimum Stock Level:</label>
+                            {{ form.minimum_stock_level }}
+                            {% if form.minimum_stock_level.errors %}
+                                <div style="color: red;">{{ form.minimum_stock_level.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.minimum_stock_alert.id_for_label }}">Enable Low Stock Alert:</label>
+                            {{ form.minimum_stock_alert }}
+                            {% if form.minimum_stock_alert.errors %}
+                                <div style="color: red;">{{ form.minimum_stock_alert.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.location_in_workshop.id_for_label }}">Location in Workshop:</label>
+                            {{ form.location_in_workshop }}
+                            {% if form.location_in_workshop.errors %}
+                                <div style="color: red;">{{ form.location_in_workshop.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <h3>Additional Information</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.brand_name.id_for_label }}">Brand Name:</label>
+                            {{ form.brand_name }}
+                            {% if form.brand_name.errors %}
+                                <div style="color: red;">{{ form.brand_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.expiration_date.id_for_label }}">Expiration Date (if applicable):</label>
+                            {{ form.expiration_date }}
+                            {% if form.expiration_date.errors %}
+                                <div style="color: red;">{{ form.expiration_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.project_association.id_for_label }}">Project Association:</label>
+                            {{ form.project_association }}
+                            {% if form.project_association.errors %}
+                                <div style="color: red;">{{ form.project_association.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div style="color: red;">{{ form.notes.errors }}</div>
+                    {% endif %}
+                </div>
+                
+            {% else %}
+                {# This is for editing existing material #}
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>Material Information</h3>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.material_id.id_for_label }}">Material ID:</label>
+                            {{ form.material_id }}
+                            {% if form.material_id.help_text %}
+                                <div style="font-size: 0.8rem; color: #666;">{{ form.material_id.help_text }}</div>
+                            {% endif %}
+                            {% if form.material_id.errors %}
+                                <div style="color: red;">{{ form.material_id.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.serial_number.id_for_label }}">Serial Number:</label>
+                            {{ form.serial_number }}
+                            {% if form.serial_number.help_text %}
+                                <div style="font-size: 0.8rem; color: #666;">{{ form.serial_number.help_text }}</div>
+                            {% endif %}
+                            {% if form.serial_number.errors %}
+                                <div style="color: red;">{{ form.serial_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.name.id_for_label }}">Material Name:</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div style="color: red;">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.material_type.id_for_label }}">Material Type:</label>
+                            {{ form.material_type }}
+                            {% if form.material_type.errors %}
+                                <div style="color: red;">{{ form.material_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.color.id_for_label }}">Color:</label>
+                            {{ form.color }}
+                            {% if form.color.errors %}
+                                <div style="color: red;">{{ form.color.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.dimensions.id_for_label }}">Dimensions:</label>
+                            {{ form.dimensions }}
+                            {% if form.dimensions.errors %}
+                                <div style="color: red;">{{ form.dimensions.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.unit_of_measurement.id_for_label }}">Unit of Measurement:</label>
+                            {{ form.unit_of_measurement }}
+                            {% if form.unit_of_measurement.errors %}
+                                <div style="color: red;">{{ form.unit_of_measurement.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 300px;">
+                        <h3>Inventory Management</h3>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.minimum_stock_level.id_for_label }}">Minimum Stock Level:</label>
+                            {{ form.minimum_stock_level }}
+                            {% if form.minimum_stock_level.errors %}
+                                <div style="color: red;">{{ form.minimum_stock_level.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.minimum_stock_alert.id_for_label }}">Enable Low Stock Alert:</label>
+                            {{ form.minimum_stock_alert }}
+                            {% if form.minimum_stock_alert.errors %}
+                                <div style="color: red;">{{ form.minimum_stock_alert.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.location_in_workshop.id_for_label }}">Location in Workshop:</label>
+                            {{ form.location_in_workshop }}
+                            {% if form.location_in_workshop.errors %}
+                                <div style="color: red;">{{ form.location_in_workshop.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.supplier_name.id_for_label }}">Supplier Name:</label>
+                            {{ form.supplier_name }}
+                            {% if form.supplier_name.errors %}
+                                <div style="color: red;">{{ form.supplier_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.brand_name.id_for_label }}">Brand Name:</label>
+                            {{ form.brand_name }}
+                            {% if form.brand_name.errors %}
+                                <div style="color: red;">{{ form.brand_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.expiration_date.id_for_label }}">Expiration Date:</label>
+                            {{ form.expiration_date }}
+                            {% if form.expiration_date.errors %}
+                                <div style="color: red;">{{ form.expiration_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="{{ form.project_association.id_for_label }}">Project Association:</label>
+                            {{ form.project_association }}
+                            {% if form.project_association.errors %}
+                                <div style="color: red;">{{ form.project_association.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div style="color: red;">{{ form.notes.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Save Material</button>
+                <a href="{% if is_new %}{% url 'workshop_app:material_list' %}{% else %}{% url 'workshop_app:material_detail' material.material_id %}{% endif %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
