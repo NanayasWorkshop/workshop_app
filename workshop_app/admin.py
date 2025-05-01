@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    MaterialCategory, MaterialType, Material, MaterialEntry,
+    MaterialCategory, MaterialType, Material, MaterialEntry, MaterialTransaction,
     MachineType, Machine,
     Operator
 )
@@ -59,6 +59,13 @@ class MaterialEntryAdmin(admin.ModelAdmin):
     list_filter = ('purchase_date', 'supplier_name')
     search_fields = ('material__material_id', 'material__name', 'supplier_name', 'notes')
     date_hierarchy = 'purchase_date'
+
+@admin.register(MaterialTransaction)
+class MaterialTransactionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'material', 'quantity', 'transaction_type', 'transaction_date', 'operator_name', 'job_reference')
+    list_filter = ('transaction_type', 'transaction_date')
+    search_fields = ('material__material_id', 'material__name', 'job_reference', 'operator_name', 'notes')
+    date_hierarchy = 'transaction_date'
 
 # Machine admin classes
 @admin.register(MachineType)

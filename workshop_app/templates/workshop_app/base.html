@@ -112,6 +112,7 @@
                     <li><a href="#">Machines</a></li>
                     <li><a href="#">Jobs</a></li>
                     <li><a href="#">Quotes</a></li>
+		    <li><a href="{% url 'workshop_app:scanner' %}">Scanner</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'admin:index' %}">Admin</a></li>
                         <li><a href="{% url 'logout' %}">Logout</a></li>

@@ -118,3 +118,38 @@ class Material(models.Model):
                 current_stock=self.current_stock,
                 price_per_unit=self.price_per_unit
             )
+    
+    def record_consumption(self, quantity, job_reference='', operator_name='', notes=''):
+        """Record material consumption and update stock"""
+        from .transaction import MaterialTransaction
+        
+        if quantity > self.current_stock:
+            raise ValueError(f"Cannot consume {quantity} {self.unit_of_measurement}. Only {self.current_stock} available.")
+        
+        transaction = MaterialTransaction(
+            material=self,
+            quantity=quantity,
+            transaction_type='consumption',
+            job_reference=job_reference,
+            operator_name=operator_name,
+            notes=notes
+        )
+        transaction.save()
+        
+        return transaction
+
+    def record_return(self, quantity, job_reference='', operator_name='', notes=''):
+        """Record material return and update stock"""
+        from .transaction import MaterialTransaction
+        
+        transaction = MaterialTransaction(
+            material=self,
+            quantity=quantity,
+            transaction_type='return',
+            job_reference=job_reference,
+            operator_name=operator_name,
+            notes=notes
+        )
+        transaction.save()
+        
+        return transaction
