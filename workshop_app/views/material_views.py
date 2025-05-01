@@ -77,8 +77,17 @@ def material_detail(request, material_id):
     # Get material entries for history
     entries = material.entries.all().order_by('-purchase_date')
     
-    # Get material attachments
-    attachments = material.attachments.all().order_by('attachment_type', 'upload_date')
+    # Get material attachments grouped by type
+    attachment_types = AttachmentType.objects.filter(
+        attachments__material=material
+    ).distinct()
+    
+    # Create a dictionary of attachments by type
+    grouped_attachments = {}
+    for attachment_type in attachment_types:
+        grouped_attachments[attachment_type] = material.attachments.filter(
+            attachment_type=attachment_type
+        ).order_by('upload_date')
     
     # Handle attachment upload
     if request.method == 'POST' and 'upload_attachment' in request.POST:
@@ -89,21 +98,43 @@ def material_detail(request, material_id):
             user=request.user
         )
         if attachment_form.is_valid():
-            attachment_form.save()
-            messages.success(request, 'Attachment uploaded successfully.')
+            # Save the main file
+            attachment = attachment_form.save()
+            
+            # Process multiple file uploads (if any)
+            multiple_files = request.FILES.getlist('files[]')
+            count = 1
+            
+            for f in multiple_files:
+                # For each additional file, create a new attachment with same metadata
+                new_attachment = MaterialAttachment(
+                    material=material,
+                    attachment_type=attachment.attachment_type,
+                    description=f"{attachment.description} ({count})" if attachment.description else f"File {count}",
+                    file=f,
+                    uploaded_by=request.user
+                )
+                new_attachment.save()
+                count += 1
+                
+            if multiple_files:
+                messages.success(request, f'Successfully uploaded {1 + len(multiple_files)} attachments.')
+            else:
+                messages.success(request, 'Attachment uploaded successfully.')
+                
             return HttpResponseRedirect(request.path)
     else:
         attachment_form = MaterialAttachmentForm(material=material, user=request.user)
     
     # Get available attachment types for dropdown
-    attachment_types = AttachmentType.objects.all()
+    attachment_types_list = AttachmentType.objects.all().order_by('name')
     
     context = {
         'material': material,
         'entries': entries,
-        'attachments': attachments,
+        'grouped_attachments': grouped_attachments,
+        'attachment_types': attachment_types_list,
         'attachment_form': attachment_form,
-        'attachment_types': attachment_types,
     }
     
     return render(request, 'workshop_app/materials/detail.html', context)

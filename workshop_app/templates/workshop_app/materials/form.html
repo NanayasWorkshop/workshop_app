@@ -23,32 +23,53 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
+            <!-- Identifiers Section (New Section) -->
+            <div style="margin-bottom: 1.5rem; padding: 1rem; background-color: #e9f7fe; border-radius: 4px; border-left: 4px solid #007bff;">
+                <h3 style="margin-top: 0; color: #007bff;">Material Identifiers</h3>
+                <p style="font-style: italic; margin-bottom: 1rem;">These identifiers are crucial for accurate tracking and reordering.</p>
+                
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    {% if not is_new %}
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="{{ form.material_id.id_for_label }}" style="font-weight: bold;">Material ID:</label>
+                        {{ form.material_id }}
+                        {% if form.material_id.help_text %}
+                            <div style="font-size: 0.8rem; color: #666;">{{ form.material_id.help_text }}</div>
+                        {% endif %}
+                        {% if form.material_id.errors %}
+                            <div style="color: red;">{{ form.material_id.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="{{ form.serial_number.id_for_label }}" style="font-weight: bold;">Serial Number:</label>
+                        {{ form.serial_number }}
+                        {% if form.serial_number.help_text %}
+                            <div style="font-size: 0.8rem; color: #666;">{{ form.serial_number.help_text }}</div>
+                        {% endif %}
+                        {% if form.serial_number.errors %}
+                            <div style="color: red;">{{ form.serial_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <label for="{{ form.supplier_sku.id_for_label }}" style="font-weight: bold;">Supplier SKU:</label>
+                        {{ form.supplier_sku }}
+                        {% if form.supplier_sku.help_text %}
+                            <div style="font-size: 0.8rem; color: #666;">{{ form.supplier_sku.help_text }}</div>
+                        {% endif %}
+                        {% if form.supplier_sku.errors %}
+                            <div style="color: red;">{{ form.supplier_sku.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
             {% if is_new %}
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 300px;">
                         <h3>Material Information</h3>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <label for="{{ form.material_id.id_for_label }}">Material ID:</label>
-                            {{ form.material_id }}
-                            {% if form.material_id.help_text %}
-                                <div style="font-size: 0.8rem; color: #666;">{{ form.material_id.help_text }}</div>
-                            {% endif %}
-                            {% if form.material_id.errors %}
-                                <div style="color: red;">{{ form.material_id.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <label for="{{ form.serial_number.id_for_label }}">Serial Number:</label>
-                            {{ form.serial_number }}
-                            {% if form.serial_number.help_text %}
-                                <div style="font-size: 0.8rem; color: #666;">{{ form.serial_number.help_text }}</div>
-                            {% endif %}
-                            {% if form.serial_number.errors %}
-                                <div style="color: red;">{{ form.serial_number.errors }}</div>
-                            {% endif %}
-                        </div>
                         
                         <div style="margin-bottom: 1rem;">
                             <label for="{{ form.name.id_for_label }}">Material Name:</label>
@@ -226,28 +247,6 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 300px;">
                         <h3>Material Information</h3>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <label for="{{ form.material_id.id_for_label }}">Material ID:</label>
-                            {{ form.material_id }}
-                            {% if form.material_id.help_text %}
-                                <div style="font-size: 0.8rem; color: #666;">{{ form.material_id.help_text }}</div>
-                            {% endif %}
-                            {% if form.material_id.errors %}
-                                <div style="color: red;">{{ form.material_id.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <label for="{{ form.serial_number.id_for_label }}">Serial Number:</label>
-                            {{ form.serial_number }}
-                            {% if form.serial_number.help_text %}
-                                <div style="font-size: 0.8rem; color: #666;">{{ form.serial_number.help_text }}</div>
-                            {% endif %}
-                            {% if form.serial_number.errors %}
-                                <div style="color: red;">{{ form.serial_number.errors }}</div>
-                            {% endif %}
-                        </div>
                         
                         <div style="margin-bottom: 1rem;">
                             <label for="{{ form.name.id_for_label }}">Material Name:</label>

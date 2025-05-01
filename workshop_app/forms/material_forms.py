@@ -16,6 +16,8 @@ class MaterialForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={'rows': 3}),
             'expiration_date': forms.DateInput(attrs={'type': 'date'}),
             'material_id': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'serial_number': forms.TextInput(attrs={'class': 'highlighted-field'}),
+            'supplier_sku': forms.TextInput(attrs={'class': 'highlighted-field'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -24,8 +26,8 @@ class MaterialForm(forms.ModelForm):
         
         # Add help text
         self.fields['material_id'].help_text = "Auto-generated from material type and serial number"
-        self.fields['serial_number'].help_text = "Manufacturer's serial number or blank if none"
-        self.fields['supplier_sku'].help_text = "Supplier's SKU or product code"
+        self.fields['serial_number'].help_text = "Manufacturer's serial number if available (important for tracking)"
+        self.fields['supplier_sku'].help_text = "Supplier's SKU or product code (important for reordering)"
         
         # Make certain fields required
         self.fields['material_type'].required = True

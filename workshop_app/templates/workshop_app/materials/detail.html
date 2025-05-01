@@ -163,40 +163,55 @@
     
     <!-- Attachments Section -->
     <h3>Attachments</h3>
-    
-    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
-        {% for attachment in attachments %}
-            <div style="border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; width: 200px;">
-                <div style="text-align: center; margin-bottom: 0.5rem;">
-                    {% if attachment.is_image %}
-                        <img src="{{ attachment.file.url }}" alt="{{ attachment.description }}" style="max-width: 100%; max-height: 100px;">
-                    {% elif attachment.is_pdf %}
-                        <div style="font-size: 3rem; color: #dc3545;">
-                            <i class="fas fa-file-pdf"></i>
-                            📄
+
+    <!-- Expandable sections for each attachment type -->
+    <div class="attachment-container">
+        {% if grouped_attachments %}
+            {% for attachment_type, attachments in grouped_attachments.items %}
+                <div class="attachment-group">
+                    <h4 class="attachment-type-toggle" onclick="toggleAttachmentGroup(this)">
+                        {{ attachment_type.name }} ({{ attachments|length }})
+                        <span class="toggle-icon">▼</span>
+                    </h4>
+                    <div class="attachment-list">
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                            {% for attachment in attachments %}
+                                <div style="border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; width: 200px;">
+                                    <div style="text-align: center; margin-bottom: 0.5rem;">
+                                        {% if attachment.is_image %}
+                                            <img src="{{ attachment.file.url }}" alt="{{ attachment.description }}" style="max-width: 100%; max-height: 100px;">
+                                        {% elif attachment.is_pdf %}
+                                            <div style="font-size: 3rem; color: #dc3545;">
+                                                <i class="fas fa-file-pdf"></i>
+                                                📄
+                                            </div>
+                                        {% else %}
+                                            <div style="font-size: 3rem; color: #007bff;">
+                                                <i class="fas fa-file"></i>
+                                                📁
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if attachment.description %}
+                                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">{{ attachment.description }}</p>
+                                    {% endif %}
+                                    <p style="margin: 0.25rem 0; font-size: 0.8rem; color: #666;">{{ attachment.upload_date|date:"Y-m-d" }}</p>
+                                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem;">
+                                        <a href="{% url 'workshop_app:material_attachment_view' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">View</a>
+                                        <a href="{% url 'workshop_app:material_attachment_download' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Download</a>
+                                        <a href="{% url 'workshop_app:material_attachment_delete' attachment.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% else %}
-                        <div style="font-size: 3rem; color: #007bff;">
-                            <i class="fas fa-file"></i>
-                            📁
-                        </div>
-                    {% endif %}
+                    </div>
                 </div>
-                <p style="margin: 0.25rem 0; font-weight: bold;">{{ attachment.get_type_display }}</p>
-                {% if attachment.description %}
-                    <p style="margin: 0.25rem 0; font-size: 0.9rem;">{{ attachment.description }}</p>
-                {% endif %}
-                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem;">
-                    <a href="{% url 'workshop_app:material_attachment_view' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">View</a>
-                    <a href="{% url 'workshop_app:material_attachment_download' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Download</a>
-                    <a href="{% url 'workshop_app:material_attachment_delete' attachment.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</a>
-                </div>
-            </div>
-        {% empty %}
+            {% endfor %}
+        {% else %}
             <p>No attachments available.</p>
-        {% endfor %}
+        {% endif %}
     </div>
-    
+
     <!-- Upload Attachment Form -->
     <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
         <h4>Upload New Attachment</h4>
@@ -208,6 +223,9 @@
                 <div style="flex: 1; min-width: 200px;">
                     <label for="{{ attachment_form.attachment_type.id_for_label }}">Type:</label>
                     {{ attachment_form.attachment_type }}
+                    {% if attachment_form.attachment_type.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.attachment_type.help_text }}</div>
+                    {% endif %}
                     {% if attachment_form.attachment_type.errors %}
                         <div style="color: red;">{{ attachment_form.attachment_type.errors }}</div>
                     {% endif %}
@@ -239,16 +257,79 @@
             <div style="margin-top: 0.5rem;">
                 <label for="{{ attachment_form.file.id_for_label }}">File:</label>
                 {{ attachment_form.file }}
+                {% if attachment_form.file.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.file.help_text }}</div>
+                {% endif %}
                 {% if attachment_form.file.errors %}
                     <div style="color: red;">{{ attachment_form.file.errors }}</div>
                 {% endif %}
             </div>
+
+            <div style="margin-top: 0.5rem;">
+                <label for="multiple_files">Additional Files (optional):</label>
+                <input type="file" name="files[]" id="multiple_files" multiple>
+                <div style="font-size: 0.8rem; color: #666;">You can select multiple additional files to upload at once</div>
+            </div>
             
             <div style="margin-top: 1rem; text-align: right;">
-                <button type="submit" class="btn">Upload Attachment</button>
+                <button type="submit" class="btn">Upload Attachment(s)</button>
             </div>
         </form>
     </div>
+
+    <!-- Add JavaScript for toggle functionality -->
+    <script>
+        function toggleAttachmentGroup(element) {
+            // Toggle the visibility of the attachment list
+            var attachmentList = element.nextElementSibling;
+            if (attachmentList.style.display === "none") {
+                attachmentList.style.display = "block";
+                element.querySelector('.toggle-icon').textContent = "▼";
+            } else {
+                attachmentList.style.display = "none";
+                element.querySelector('.toggle-icon').textContent = "►";
+            }
+        }
+        
+        // Initialize all attachment groups to be expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            var attachmentGroups = document.querySelectorAll('.attachment-list');
+            attachmentGroups.forEach(function(group) {
+                group.style.display = "block";
+            });
+        });
+    </script>
+
+    <!-- Add CSS for attachment groups -->
+    <style>
+        .attachment-container {
+            margin-bottom: 2rem;
+        }
+        
+        .attachment-group {
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .attachment-type-toggle {
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            margin: 0;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .attachment-list {
+            padding: 1rem;
+        }
+        
+        .toggle-icon {
+            font-size: 0.8rem;
+        }
+    </style>
     
     <!-- Material Entry History -->
     <h3>Purchase History</h3>

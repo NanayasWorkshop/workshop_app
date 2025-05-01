@@ -22,6 +22,13 @@ class MaterialAttachmentForm(forms.ModelForm):
         # Set help text
         self.fields['attachment_type'].help_text = "Select the type of attachment"
         self.fields['description'].help_text = "Brief description of this file"
+        self.fields['file'].help_text = "Upload file (use batch upload for multiple files)"
+        
+        # Set attachment type choices
+        attachment_types = AttachmentType.objects.all().order_by('name')
+        if attachment_types.exists():
+            self.fields['attachment_type'].choices = [(at.id, at.name) for at in attachment_types]
+            self.fields['attachment_type'].choices.insert(0, ('', '-- Select Type --'))
         
     def clean(self):
         """Validate the form data"""
@@ -65,4 +72,3 @@ class MaterialAttachmentForm(forms.ModelForm):
             instance.save()
             
         return instance
-
