@@ -3,8 +3,9 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.utils import timezone
 
-from ..models import Machine
+from ..models import Machine, MachineUsage, MachineMaintenance, MachineConsumable, ConsumableReplacement
 
 @login_required
 def machine_scanner_view(request):

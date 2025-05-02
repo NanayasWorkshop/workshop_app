@@ -1,0 +1,165 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Machine Usage Records | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_list' %}" class="btn btn-secondary">← Back to Machines</a>
+    </div>
+    
+    <h2>Machine Usage Records</h2>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <form method="get">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <div>
+                    <label for="machine">Machine:</label>
+                    <select name="machine" id="machine">
+                        <option value="">All Machines</option>
+                        {% for machine in machines %}
+                            <option value="{{ machine.machine_id }}" {% if selected_machine == machine.machine_id %}selected{% endif %}>
+                                {{ machine.name }} ({{ machine.machine_id }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="date_from">From Date:</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                </div>
+                
+                <div>
+                    <label for="date_to">To Date:</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                </div>
+                
+                <div>
+                    <label for="operator">Operator:</label>
+                    <input type="text" name="operator" id="operator" value="{{ operator_filter }}" placeholder="Operator name">
+                </div>
+                
+                <div>
+                    <label for="status">Status:</label>
+                    <select name="status" id="status">
+                        <option value="">All</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <button type="submit" class="btn">Filter</button>
+                    <a href="{% url 'workshop_app:machine_usage_list' %}" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Total Usage</h3>
+            <div style="font-size: 1.8rem; font-weight: bold;">{{ usages.count }}</div>
+            <div style="color: #666;">Records</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Machine Time</h3>
+            <div style="font-size: 1.8rem; font-weight: bold;">{{ total_machine_time|floatformat:1 }}</div>
+            <div style="color: #666;">Hours</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Setup/Cleanup</h3>
+            <div style="font-size: 1.8rem; font-weight: bold;">{{ total_setup_time|floatformat:1 }} / {{ total_cleanup_time|floatformat:1 }}</div>
+            <div style="color: #666;">Hours</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Total Cost</h3>
+            <div style="font-size: 1.8rem; font-weight: bold;">CHF{{ total_cost|floatformat:2 }}</div>
+            <div style="color: #666;">Machine Operation</div>
+        </div>
+    </div>
+    
+    <!-- Usage Records Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Machine</th>
+                <th>Duration</th>
+                <th>Setup</th>
+                <th>Cleanup</th>
+                <th>Operator</th>
+                <th>Job Reference</th>
+                <th>Total Cost</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usage in usages %}
+                <tr>
+                    <td>{{ usage.start_time|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <a href="{% url 'workshop_app:machine_detail' usage.machine.machine_id %}">
+                            {{ usage.machine.name }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if usage.end_time %}
+                            {{ usage.get_duration_display }}
+                        {% else %}
+                            <span style="color: #856404; background-color: #fff3cd; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                In Progress
+                                ({{ current_time|timeuntil:usage.start_time }})
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ usage.setup_time }} min</td>
+                    <td>{{ usage.cleanup_time }} min</td>
+                    <td>{{ usage.operator_name|default:"Unknown" }}</td>
+                    <td>{{ usage.job_reference|default:"-" }}</td>
+                    <td>
+                        {% if usage.total_cost %}
+                            CHF{{ usage.total_cost|floatformat:2 }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not usage.end_time %}
+                            <span style="color: #155724; background-color: #d4edda; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                Active
+                            </span>
+                        {% else %}
+                            <span style="color: #383d41; background-color: #e2e3e5; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                Completed
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9">No usage records found matching the criteria.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 1.5rem;">
+        <a href="{% url 'workshop_app:machine_usage_report' %}" class="btn">View Usage Reports</a>
+    </div>
+{% endblock %}

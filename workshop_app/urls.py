@@ -14,7 +14,9 @@ from .views import (
     machine_scanner_view, machine_lookup,
     quick_usage_start, quick_usage_end,
     quick_maintenance_report,
-    test_view, profile_view, dashboard_view
+    test_view, profile_view, dashboard_view,
+    # New views
+    machine_usage_list, maintenance_list, machine_usage_report
 )
 
 app_name = 'workshop_app'
@@ -61,6 +63,11 @@ urlpatterns = [
     path('machines/<str:machine_id>/usage/start/', quick_usage_start, name='quick_usage_start'),
     path('machines/<str:machine_id>/usage/end/', quick_usage_end, name='quick_usage_end'),
     path('machines/<str:machine_id>/maintenance/report/', quick_maintenance_report, name='quick_maintenance_report'),
+    
+    # New Reports URLs
+    path('machines/usage/list/', machine_usage_list, name='machine_usage_list'),
+    path('machines/maintenance/list/', maintenance_list, name='maintenance_list'),
+    path('machines/usage/report/', machine_usage_report, name='machine_usage_report'),
     
     # Machine detail and other machine-specific URLs - THESE MUST COME AFTER machine/scanner/
     path('machines/<str:machine_id>/', machine_detail, name='machine_detail'),

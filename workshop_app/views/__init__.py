@@ -22,6 +22,9 @@ from .machine_scanner_views import (
     quick_usage_start, quick_usage_end,
     quick_maintenance_report
 )
+from .machine_reports import (
+    machine_usage_list, maintenance_list, machine_usage_report
+)
 from .test_view import test_view
 from .user_views import profile_view
 from .dashboard_view import dashboard_view
