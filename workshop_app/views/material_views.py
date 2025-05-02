@@ -145,6 +145,9 @@ def material_create(request):
     """
     Create a new material and its first entry.
     """
+    # Check for scanned_id parameter to pre-fill serial number
+    scanned_id = request.GET.get('scanned_id', '')
+    
     if request.method == 'POST':
         form = MaterialForm(request.POST)
         entry_form = MaterialEntryForm(request.POST, request.FILES)
@@ -170,7 +173,13 @@ def material_create(request):
             messages.success(request, 'Material created successfully.')
             return redirect('workshop_app:material_detail', material_id=material.material_id)
     else:
-        form = MaterialForm()
+        # Pre-fill serial number if scanned_id is provided
+        initial = {}
+        if scanned_id:
+            initial = {'serial_number': scanned_id}
+            messages.info(request, f'Serial number pre-filled from scan: {scanned_id}')
+            
+        form = MaterialForm(initial=initial)
         entry_form = MaterialEntryForm()
     
     context = {
