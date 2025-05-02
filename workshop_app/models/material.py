@@ -41,7 +41,7 @@ class MaterialType(models.Model):
 class Material(models.Model):
     """Individual material entries"""
     # Basic Info
-    material_id = models.CharField(max_length=15, unique=True)  # PRT-PLA-0001
+    material_id = models.CharField(max_length=20, unique=True)  # PRT-PLA-0001
     serial_number = models.CharField(max_length=50, blank=True, help_text="Manufacturer's serial number if applicable")
     supplier_sku = models.CharField(max_length=50, blank=True, help_text="Supplier's SKU or product code")
     name = models.CharField(max_length=100)

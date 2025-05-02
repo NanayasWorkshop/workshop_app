@@ -18,7 +18,7 @@ def profile_view(request):
                 # Update session to prevent logout
                 update_session_auth_hash(request, user)
                 messages.success(request, 'Your password was successfully updated!')
-                return redirect('profile')
+                return redirect('workshop_app:profile')
             else:
                 messages.error(request, 'Please correct the errors below.')
         # Handle profile info update
@@ -36,7 +36,7 @@ def profile_view(request):
             user.save()
             
             messages.success(request, 'Your profile has been updated!')
-            return redirect('profile')
+            return redirect('workshop_app:profile')
     else:
         password_form = PasswordChangeForm(request.user)
     

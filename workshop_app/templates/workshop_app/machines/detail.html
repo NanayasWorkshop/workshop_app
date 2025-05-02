@@ -133,7 +133,7 @@
             <table>
                 <tr>
                     <th>Hourly Rate:</th>
-                    <td>{% if machine.hourly_rate %}€{{ machine.hourly_rate }}{% else %}Not specified{% endif %}</td>
+                    <td>{% if machine.hourly_rate %}CHF{{ machine.hourly_rate }}{% else %}Not specified{% endif %}</td>
                 </tr>
                 <tr>
                     <th>Setup Time:</th>
@@ -141,7 +141,7 @@
                 </tr>
                 <tr>
                     <th>Setup Rate:</th>
-                    <td>{% if machine.setup_rate %}€{{ machine.setup_rate }}{% else %}Not specified{% endif %}</td>
+                    <td>{% if machine.setup_rate %}CHF{{ machine.setup_rate }}{% else %}Not specified{% endif %}</td>
                 </tr>
                 <tr>
                     <th>Cleanup Time:</th>
@@ -149,7 +149,7 @@
                 </tr>
                 <tr>
                     <th>Cleanup Rate:</th>
-                    <td>{% if machine.cleanup_rate %}€{{ machine.cleanup_rate }}{% else %}Not specified{% endif %}</td>
+                    <td>{% if machine.cleanup_rate %}CHF{{ machine.cleanup_rate }}{% else %}Not specified{% endif %}</td>
                 </tr>
             </table>
             
@@ -161,11 +161,11 @@
                 </tr>
                 <tr>
                     <th>Total Usage Cost:</th>
-                    <td>€{{ total_usage_cost|floatformat:2 }}</td>
+                    <td>CHF{{ total_usage_cost|floatformat:2 }}</td>
                 </tr>
                 <tr>
                     <th>Total Maintenance Cost:</th>
-                    <td>€{{ total_maintenance_cost|floatformat:2 }}</td>
+                    <td>CHF{{ total_maintenance_cost|floatformat:2 }}</td>
                 </tr>
             </table>
         </div>
