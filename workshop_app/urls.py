@@ -54,6 +54,15 @@ urlpatterns = [
     # Machine URLs
     path('machines/', machine_list, name='machine_list'),
     path('machines/create/', machine_create, name='machine_create'),
+    
+    # Machine Scanner URLs - IMPORTANT: These must come BEFORE the machine_detail URL
+    path('machines/scanner/', machine_scanner_view, name='machine_scanner'),
+    path('api/machine-lookup/', machine_lookup, name='machine_lookup'),
+    path('machines/<str:machine_id>/usage/start/', quick_usage_start, name='quick_usage_start'),
+    path('machines/<str:machine_id>/usage/end/', quick_usage_end, name='quick_usage_end'),
+    path('machines/<str:machine_id>/maintenance/report/', quick_maintenance_report, name='quick_maintenance_report'),
+    
+    # Machine detail and other machine-specific URLs - THESE MUST COME AFTER machine/scanner/
     path('machines/<str:machine_id>/', machine_detail, name='machine_detail'),
     path('machines/<str:machine_id>/update/', machine_update, name='machine_update'),
     path('machines/<str:machine_id>/delete/', machine_delete, name='machine_delete'),
@@ -62,11 +71,4 @@ urlpatterns = [
     path('machines/usage/<int:usage_id>/success/', machine_usage_success, name='machine_usage_success'),
     path('machines/<str:machine_id>/maintenance/add/', machine_maintenance_add, name='machine_maintenance_add'),
     path('machines/<str:machine_id>/consumable/add/', machine_consumable_add, name='machine_consumable_add'),
-    
-    # Machine Scanner URLs
-    path('machines/scanner/', machine_scanner_view, name='machine_scanner'),
-    path('api/machine-lookup/', machine_lookup, name='machine_lookup'),
-    path('machines/<str:machine_id>/usage/start/', quick_usage_start, name='quick_usage_start'),
-    path('machines/<str:machine_id>/usage/end/', quick_usage_end, name='quick_usage_end'),
-    path('machines/<str:machine_id>/maintenance/report/', quick_maintenance_report, name='quick_maintenance_report'),
 ]
