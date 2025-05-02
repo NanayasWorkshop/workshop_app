@@ -51,14 +51,16 @@ def material_lookup(request):
         return JsonResponse({
             'found': False,
             'error': 'Material not found',
-            'message': f'No material found with ID or serial number: {identifier}'
+            'message': f'No material found with ID or serial number: {identifier}',
+            'scanned_id': identifier  # Include the scanned ID in the response
         }, status=404)
     
     except Exception as e:
         return JsonResponse({
             'found': False,
             'error': 'Error looking up material',
-            'message': str(e)
+            'message': str(e),
+            'scanned_id': identifier  # Include the scanned ID in the response
         }, status=500)
 
 @login_required
