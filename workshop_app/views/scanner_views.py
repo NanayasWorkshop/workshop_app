@@ -27,10 +27,20 @@ def material_lookup(request):
         return JsonResponse({'error': 'No identifier provided'}, status=400)
     
     try:
-        # Try to find by material_id or serial_number
-        material = Material.objects.get(
-            Q(material_id=identifier) | Q(serial_number=identifier)
-        )
+        # Check if the identifier contains a pipe character (from QR code)
+        if '|' in identifier:
+            # Split the identifier by pipe
+            parts = identifier.split('|')
+            # Try to find by either part
+            material = Material.objects.get(
+                Q(material_id=parts[0]) | Q(serial_number=parts[0]) |
+                Q(material_id=parts[1]) | Q(serial_number=parts[1])
+            )
+        else:
+            # Original search logic for identifiers without pipe
+            material = Material.objects.get(
+                Q(material_id=identifier) | Q(serial_number=identifier)
+            )
         
         # Return material details as JSON
         data = {
@@ -41,6 +51,8 @@ def material_lookup(request):
             'type': material.material_type.name,
             'current_stock': float(material.current_stock),
             'unit': material.unit_of_measurement,
+            'supplier_name': material.supplier_name,
+            'price_per_unit': str(material.price_per_unit) if material.price_per_unit else '',
             'detail_url': f"/materials/{material.material_id}/",
             'transaction_url': f"/materials/{material.material_id}/transaction/",
         }
@@ -84,7 +96,13 @@ def material_transaction(request, material_id):
         )
         
         if form.is_valid():
-            transaction = form.save()
+            transaction = form.save(commit=False)
+            
+            # Set the operator name to the current user if not already set
+            if not transaction.operator_name or transaction.operator_name.strip() == '':
+                transaction.operator_name = request.user.get_full_name() or request.user.username
+                
+            transaction.save()
             
             # Set success message
             action = "consumed" if transaction_type == 'consumption' else "returned to inventory"
@@ -96,15 +114,16 @@ def material_transaction(request, material_id):
             # Redirect to success page
             return redirect('workshop_app:transaction_success', transaction_id=transaction.id)
     else:
-        # Pre-fill operator name if user has a profile
-        initial = {}
-        if hasattr(request.user, 'operator'):
-            initial['operator_name'] = str(request.user.operator)
-            
+        # Pre-fill operator name with current user and make it read-only
+        initial = {
+            'operator_name': request.user.get_full_name() or request.user.username
+        }
+        
         form = MaterialTransactionForm(
             material=material, 
             transaction_type=transaction_type,
-            initial=initial
+            initial=initial,
+            operator_readonly=True  # New parameter to make operator field read-only
         )
     
     context = {

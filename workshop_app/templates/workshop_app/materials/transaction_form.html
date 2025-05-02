@@ -69,8 +69,11 @@
             </div>
             
             <div style="margin-bottom: 1rem;">
-                <label for="{{ form.operator_name.id_for_label }}">Your Name:</label>
+                <label for="{{ form.operator_name.id_for_label }}">Operator Name:</label>
                 {{ form.operator_name }}
+                {% if form.operator_name.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.operator_name.help_text }}</div>
+                {% endif %}
                 {% if form.operator_name.errors %}
                     <div style="color: red;">{{ form.operator_name.errors }}</div>
                 {% endif %}

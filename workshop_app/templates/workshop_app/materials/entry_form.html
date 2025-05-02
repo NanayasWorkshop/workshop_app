@@ -51,9 +51,9 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <h3>New Purchase Information</h3>
+            <h3>{% if quick_purchase %}Quick Purchase Information{% else %}New Purchase Information{% endif %}</h3>
             
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
                 <label for="{{ form.quantity.id_for_label }}">Quantity:</label>
                 {{ form.quantity }}
                 {% if form.quantity.errors %}
@@ -61,7 +61,7 @@
                 {% endif %}
             </div>
             
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; {% if quick_purchase and form.price_per_unit.value %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
                 <label for="{{ form.price_per_unit.id_for_label }}">Price per Unit:</label>
                 {{ form.price_per_unit }}
                 {% if form.price_per_unit.errors %}
@@ -69,7 +69,7 @@
                 {% endif %}
             </div>
             
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
                 <label for="{{ form.purchase_date.id_for_label }}">Purchase Date:</label>
                 {{ form.purchase_date }}
                 {% if form.purchase_date.errors %}
@@ -77,7 +77,7 @@
                 {% endif %}
             </div>
             
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; {% if quick_purchase and form.supplier_name.value %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
                 <label for="{{ form.supplier_name.id_for_label }}">Supplier Name:</label>
                 {{ form.supplier_name }}
                 {% if form.supplier_name.errors %}
@@ -85,7 +85,7 @@
                 {% endif %}
             </div>
             
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
                 <label for="{{ form.receipt.id_for_label }}">Receipt Upload:</label>
                 {{ form.receipt }}
                 {% if form.receipt.help_text %}
@@ -105,7 +105,7 @@
             </div>
             
             <div style="margin-top: 1rem; text-align: right;">
-                <button type="submit" class="btn">Add Purchase</button>
+                <button type="submit" class="btn">{% if quick_purchase %}Record Purchase{% else %}Add Purchase{% endif %}</button>
                 <a href="{% url 'workshop_app:material_detail' material.material_id %}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>

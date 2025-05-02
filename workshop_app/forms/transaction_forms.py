@@ -14,6 +14,7 @@ class MaterialTransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.material = kwargs.pop('material', None)
         self.transaction_type = kwargs.pop('transaction_type', 'consumption')
+        self.operator_readonly = kwargs.pop('operator_readonly', False)
         super().__init__(*args, **kwargs)
         
         # Set appropriate labels based on transaction type
@@ -24,6 +25,11 @@ class MaterialTransactionForm(forms.ModelForm):
         
         # Set help text
         self.fields['quantity'].help_text = f"Amount in {self.material.unit_of_measurement if self.material else 'units'}"
+        
+        # Make operator field read-only if specified
+        if self.operator_readonly:
+            self.fields['operator_name'].widget.attrs['readonly'] = True
+            self.fields['operator_name'].help_text = "Auto-filled with your username"
         
     def clean_quantity(self):
         """Validate quantity based on transaction type"""
@@ -56,4 +62,3 @@ class MaterialTransactionForm(forms.ModelForm):
             instance.save()
             
         return instance
-

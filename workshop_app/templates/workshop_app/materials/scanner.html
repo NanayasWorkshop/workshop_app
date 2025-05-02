@@ -74,6 +74,7 @@
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <a id="useButton" href="#" class="btn">Use Material</a>
                             <a id="returnButton" href="#" class="btn">Return Material</a>
+                            <a id="quickPurchaseButton" href="#" class="btn" style="background-color: #28a745;">Quick Purchase</a>
                             <a id="detailButton" href="#" class="btn btn-secondary">View Details</a>
                         </div>
                     </div>
@@ -112,6 +113,7 @@
             const resultStock = document.getElementById('result-stock');
             const useButton = document.getElementById('useButton');
             const returnButton = document.getElementById('returnButton');
+            const quickPurchaseButton = document.getElementById('quickPurchaseButton');
             const detailButton = document.getElementById('detailButton');
             const errorMessage = document.getElementById('error-message');
             
@@ -221,6 +223,7 @@
                             // Set buttons
                             useButton.href = `${data.transaction_url}?type=consumption`;
                             returnButton.href = `${data.transaction_url}?type=return`;
+                            quickPurchaseButton.href = `{% url 'workshop_app:material_entry_add' 'placeholder' %}`.replace('placeholder', data.material_id) + '?quick_purchase=true';
                             detailButton.href = data.detail_url;
                             
                             // Show result

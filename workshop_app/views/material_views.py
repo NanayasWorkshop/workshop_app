@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils import timezone
 
 from ..models import Material, MaterialCategory, MaterialType, MaterialEntry, MaterialAttachment, AttachmentType
 from ..forms import MaterialForm, MaterialEntryForm, MaterialAttachmentForm
@@ -223,7 +224,10 @@ def material_entry_add(request, material_id):
     """
     Add a new entry (purchase) to an existing material.
     """
-    material = get_object_or_404(Material, material_id=material_id)
+    material = get_object_or_404(Material, Q(material_id=material_id) | Q(serial_number=material_id))
+    
+    # Check if this is a quick purchase
+    quick_purchase = request.GET.get('quick_purchase', 'false') == 'true'
     
     if request.method == 'POST':
         form = MaterialEntryForm(request.POST, request.FILES, material=material)
@@ -235,15 +239,28 @@ def material_entry_add(request, material_id):
             # Update material average price and stock
             material.update_price_and_stock()
             
-            messages.success(request, 'Material entry added successfully.')
+            messages.success(request, 'Material purchase added successfully.')
             return redirect('workshop_app:material_detail', material_id=material.material_id)
     else:
-        form = MaterialEntryForm(material=material)
+        # Set initial values
+        initial = {}
+        
+        # For quick purchase, pre-fill with material's existing data
+        if quick_purchase:
+            initial = {
+                'purchase_date': timezone.now().date(),
+                'price_per_unit': material.price_per_unit,
+                'supplier_name': material.supplier_name,
+            }
+            messages.info(request, f'Quick purchase form pre-filled for {material.name}. Please enter quantity and upload receipt.')
+            
+        form = MaterialEntryForm(material=material, initial=initial)
     
     context = {
         'form': form,
         'material': material,
-        'title': 'Add Material Purchase Entry',
+        'title': 'Add Material Purchase',
+        'quick_purchase': quick_purchase,
     }
     
     return render(request, 'workshop_app/materials/entry_form.html', context)
