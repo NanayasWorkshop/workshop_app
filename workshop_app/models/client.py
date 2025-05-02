@@ -144,6 +144,7 @@ class Communication(models.Model):
     contact_person = models.ForeignKey(ContactPerson, on_delete=models.SET_NULL, null=True, blank=True)
     staff_member = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     summary = models.TextField(help_text="Brief description of communication")
+    attachment = models.FileField(upload_to='client_communications/', blank=True, null=True)
     follow_up_required = models.BooleanField(default=False)
     follow_up_date = models.DateField(null=True, blank=True)
     

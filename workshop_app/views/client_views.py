@@ -278,6 +278,7 @@ def communication_add(request, client_id):
         summary = request.POST.get('summary')
         follow_up = request.POST.get('follow_up_required') == 'on'
         follow_up_date = request.POST.get('follow_up_date')
+        attachment = request.FILES.get('attachment')
         
         # Validate required fields
         if not summary:
@@ -290,7 +291,8 @@ def communication_add(request, client_id):
             comm_type=comm_type,
             summary=summary,
             staff_member=request.user,
-            follow_up_required=follow_up
+            follow_up_required=follow_up,
+            attachment=attachment
         )
         
         # Set optional fields

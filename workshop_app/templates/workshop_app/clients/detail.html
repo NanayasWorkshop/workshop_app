@@ -1,0 +1,485 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ client.name }} | Clients | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:client_list' %}" class="btn btn-secondary">← Back to Clients</a>
+    </div>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <h2>Client: {{ client.name }}</h2>
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Left Column: Basic Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Basic Information</h3>
+            <table>
+                <tr>
+                    <th>Client ID:</th>
+                    <td>{{ client.client_id }}</td>
+                </tr>
+                <tr>
+                    <th>Name:</th>
+                    <td>{{ client.name }}</td>
+                </tr>
+                <tr>
+                    <th>Type:</th>
+                    <td>{{ client.get_type_display }}</td>
+                </tr>
+                <tr>
+                    <th>Industry:</th>
+                    <td>{{ client.industry|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Reference Source:</th>
+                    <td>{{ client.reference_source|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Status:</th>
+                    <td>
+                        <span style="
+                            display: inline-block;
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 4px;
+                            {% if client.status == 'active' %}
+                                background-color: #d4edda;
+                                color: #155724;
+                            {% elif client.status == 'inactive' %}
+                                background-color: #f8d7da;
+                                color: #721c24;
+                            {% elif client.status == 'prospect' %}
+                                background-color: #fff3cd;
+                                color: #856404;
+                            {% else %}
+                                background-color: #e2e3e5;
+                                color: #383d41;
+                            {% endif %}
+                        ">
+                            {{ client.get_status_display }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Created Date:</th>
+                    <td>{{ client.created_date|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Last Updated:</th>
+                    <td>{{ client.last_updated|date:"Y-m-d H:i" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Contact Information</h3>
+            <table>
+                <tr>
+                    <th>Primary Email:</th>
+                    <td>{{ client.primary_email|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Secondary Email:</th>
+                    <td>{{ client.secondary_email|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Phone Number:</th>
+                    <td>{{ client.phone_number|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Mobile Number:</th>
+                    <td>{{ client.mobile_number|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Website:</th>
+                    <td>
+                        {% if client.website %}
+                            <a href="{{ client.website }}" target="_blank">{{ client.website }}</a>
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Social Media:</th>
+                    <td>
+                        {% if client.social_media %}
+                            {{ client.social_media|linebreaks }}
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Right Column: Address and Financial Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Address</h3>
+            <table>
+                <tr>
+                    <th>Street Address:</th>
+                    <td>{{ client.street_address|default:"Not specified" }}</td>
+                </tr>
+                {% if client.address_line_2 %}
+                <tr>
+                    <th>Address Line 2:</th>
+                    <td>{{ client.address_line_2 }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>City:</th>
+                    <td>{{ client.city|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>State/Province:</th>
+                    <td>{{ client.state_province|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Postal Code:</th>
+                    <td>{{ client.postal_code|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Country:</th>
+                    <td>{{ client.country|default:"Not specified" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Financial Information</h3>
+            <table>
+                <tr>
+                    <th>Tax ID:</th>
+                    <td>{{ client.tax_id|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Payment Terms:</th>
+                    <td>{{ client.payment_terms|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Currency:</th>
+                    <td>{{ client.currency|default:"CHF" }}</td>
+                </tr>
+                <tr>
+                    <th>Discount Rate:</th>
+                    <td>{% if client.discount_rate %}{{ client.discount_rate }}%{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Credit Limit:</th>
+                    <td>{% if client.credit_limit %}{{ client.currency }} {{ client.credit_limit }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Account Status:</th>
+                    <td>{{ client.account_status|default:"Not specified" }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Notes Section -->
+    {% if client.notes %}
+    <h3>Notes</h3>
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        {{ client.notes|linebreaks }}
+    </div>
+    {% endif %}
+    
+    <!-- Contact Persons -->
+    <h3>Contact Persons</h3>
+    {% if contacts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Department</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Primary Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                    <tr>
+                        <td>{{ contact.name }}</td>
+                        <td>{{ contact.position|default:"-" }}</td>
+                        <td>{{ contact.department|default:"-" }}</td>
+                        <td>{{ contact.direct_email|default:"-" }}</td>
+                        <td>{{ contact.phone|default:"-" }}</td>
+                        <td>{% if contact.primary_contact %}<strong>Yes</strong>{% else %}No{% endif %}</td>
+                        <td>
+                            <a href="{% url 'workshop_app:contact_update' contact.id %}" class="btn">Edit</a>
+                            <a href="{% url 'workshop_app:contact_delete' contact.id %}" class="btn btn-secondary">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No contact persons defined for this client.</p>
+    {% endif %}
+    
+    <div style="margin: 1rem 0;">
+        <a href="{% url 'workshop_app:contact_create' client.client_id %}" class="btn">Add Contact Person</a>
+    </div>
+    
+    <!-- Communication History -->
+    <h3>Communication History</h3>
+    {% if communications %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Contact Person</th>
+                    <th>Staff Member</th>
+                    <th>Summary</th>
+                    <th>Attachment</th>
+                    <th>Follow-up</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comm in communications %}
+                    <tr>
+                        <td>{{ comm.date|date:"Y-m-d H:i" }}</td>
+                        <td>{{ comm.get_comm_type_display }}</td>
+                        <td>{{ comm.contact_person.name|default:"-" }}</td>
+                        <td>{{ comm.staff_member.get_full_name|default:comm.staff_member.username|default:"-" }}</td>
+                        <td>{{ comm.summary|truncatechars:50 }}</td>
+                        <td>
+                            {% if comm.attachment %}
+                                <a href="{{ comm.attachment.url }}" target="_blank" class="btn">View</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if comm.follow_up_required %}
+                                <strong>Required</strong>
+                                {% if comm.follow_up_date %}
+                                    by {{ comm.follow_up_date|date:"Y-m-d" }}
+                                {% endif %}
+                            {% else %}
+                                No
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No communication history available.</p>
+    {% endif %}
+    
+    <!-- Add Communication Form -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+        <h4>Add Communication Log</h4>
+        <form method="post" action="{% url 'workshop_app:communication_add' client.client_id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="comm_type">Communication Type:</label>
+                    <select name="comm_type" id="comm_type" style="width: 100%;" required>
+                        <option value="email">Email</option>
+                        <option value="phone">Phone</option>
+                        <option value="meeting">Meeting</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="contact_person">Contact Person:</label>
+                    <select name="contact_person" id="contact_person" style="width: 100%;">
+                        <option value="">-- Select Contact --</option>
+                        {% for contact in contacts %}
+                            <option value="{{ contact.id }}">{{ contact.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="summary">Summary:</label>
+                <textarea name="summary" id="summary" rows="3" style="width: 100%;" required></textarea>
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="attachment">Attachment (optional):</label>
+                <input type="file" name="attachment" id="attachment" style="width: 100%;">
+                <div style="font-size: 0.8rem; color: #666;">Upload meeting notes, email copies, drawings, or other relevant files</div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label>
+                        <input type="checkbox" name="follow_up_required" id="follow_up_required">
+                        Follow-up Required
+                    </label>
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="follow_up_date">Follow-up Date:</label>
+                    <input type="date" name="follow_up_date" id="follow_up_date" style="width: 100%;">
+                </div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Add Communication</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Documents -->
+    <h3>Documents</h3>
+    {% if documents %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Upload Date</th>
+                    <th>Expiration Date</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                    <tr>
+                        <td>{{ doc.title }}</td>
+                        <td>{{ doc.get_doc_type_display }}</td>
+                        <td>{{ doc.upload_date|date:"Y-m-d" }}</td>
+                        <td>{{ doc.expiration_date|date:"Y-m-d"|default:"-" }}</td>
+                        <td>{{ doc.tags|default:"-" }}</td>
+                        <td>
+                            <a href="{{ doc.file.url }}" target="_blank" class="btn">View</a>
+                            <a href="{% url 'workshop_app:document_delete' doc.id %}" class="btn btn-secondary">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No documents available.</p>
+    {% endif %}
+    
+    <!-- Upload Document Form -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+        <h4>Upload Document</h4>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="upload_document" value="1">
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ document_form.doc_type.id_for_label }}">Document Type:</label>
+                    {{ document_form.doc_type }}
+                    {% if document_form.doc_type.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ document_form.doc_type.help_text }}</div>
+                    {% endif %}
+                    {% if document_form.doc_type.errors %}
+                        <div style="color: red;">{{ document_form.doc_type.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ document_form.title.id_for_label }}">Title:</label>
+                    {{ document_form.title }}
+                    {% if document_form.title.errors %}
+                        <div style="color: red;">{{ document_form.title.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ document_form.file.id_for_label }}">File:</label>
+                    {{ document_form.file }}
+                    {% if document_form.file.errors %}
+                        <div style="color: red;">{{ document_form.file.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ document_form.expiration_date.id_for_label }}">Expiration Date:</label>
+                    {{ document_form.expiration_date }}
+                    {% if document_form.expiration_date.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ document_form.expiration_date.help_text }}</div>
+                    {% endif %}
+                    {% if document_form.expiration_date.errors %}
+                        <div style="color: red;">{{ document_form.expiration_date.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ document_form.tags.id_for_label }}">Tags:</label>
+                {{ document_form.tags }}
+                {% if document_form.tags.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ document_form.tags.help_text }}</div>
+                {% endif %}
+                {% if document_form.tags.errors %}
+                    <div style="color: red;">{{ document_form.tags.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ document_form.notes.id_for_label }}">Notes:</label>
+                {{ document_form.notes }}
+                {% if document_form.notes.errors %}
+                    <div style="color: red;">{{ document_form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Upload Document</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Client History -->
+    {% if history %}
+    <h3>Client History</h3>
+    <table>
+        <tr>
+            <th>Projects Completed:</th>
+            <td>{{ history.projects_completed }}</td>
+        </tr>
+        <tr>
+            <th>Total Spending:</th>
+            <td>{{ client.currency }} {{ history.total_spending }}</td>
+        </tr>
+        {% if history.average_project_value %}
+        <tr>
+            <th>Average Project Value:</th>
+            <td>{{ client.currency }} {{ history.average_project_value }}</td>
+        </tr>
+        {% endif %}
+        {% if history.first_project_date %}
+        <tr>
+            <th>First Project Date:</th>
+            <td>{{ history.first_project_date|date:"Y-m-d" }}</td>
+        </tr>
+        {% endif %}
+        {% if history.latest_project_date %}
+        <tr>
+            <th>Latest Project Date:</th>
+            <td>{{ history.latest_project_date|date:"Y-m-d" }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'workshop_app:client_update' client.client_id %}" class="btn">Edit Client</a>
+        <a href="{% url 'workshop_app:client_delete' client.client_id %}" class="btn btn-secondary">Delete Client</a>
+    </div>
+{% endblock %}
