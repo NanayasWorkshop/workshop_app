@@ -1,7 +1,8 @@
 from django.contrib import admin
 from .models import (
     MaterialCategory, MaterialType, Material, MaterialEntry, MaterialTransaction,
-    MachineType, Machine, Operator, AttachmentType, MaterialAttachment
+    MachineType, Machine, Operator, AttachmentType, MaterialAttachment,
+    Client, ContactPerson, ClientHistory, Communication, ClientDocument
 )
 
 # Material admin classes
@@ -147,3 +148,72 @@ class OperatorAdmin(admin.ModelAdmin):
             'fields': ('certified_machines', 'special_skills')
         }),
     )
+
+# Client admin classes
+class ContactPersonInline(admin.TabularInline):
+    model = ContactPerson
+    extra = 1
+
+class ClientDocumentInline(admin.TabularInline):
+    model = ClientDocument
+    extra = 1
+
+class CommunicationInline(admin.TabularInline):
+    model = Communication
+    extra = 1
+    fields = ('date', 'comm_type', 'contact_person', 'staff_member', 'summary', 'follow_up_required', 'follow_up_date')
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = ('client_id', 'name', 'type', 'status', 'primary_email', 'phone_number', 'city', 'country')
+    list_filter = ('status', 'type', 'country')
+    search_fields = ('client_id', 'name', 'primary_email', 'industry')
+    readonly_fields = ('client_id', 'created_date', 'last_updated')
+    inlines = [ContactPersonInline, ClientDocumentInline]
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('client_id', 'name', 'type', 'industry', 'reference_source', 'status', 'notes')
+        }),
+        ('Contact Information', {
+            'fields': ('primary_email', 'secondary_email', 'phone_number', 'mobile_number', 'website', 'social_media')
+        }),
+        ('Address', {
+            'fields': ('street_address', 'address_line_2', 'city', 'state_province', 'postal_code', 'country')
+        }),
+        ('Financial Information', {
+            'fields': ('tax_id', 'payment_terms', 'currency', 'discount_rate', 'credit_limit', 'account_status')
+        }),
+        ('System Information', {
+            'fields': ('created_date', 'last_updated')
+        }),
+    )
+
+@admin.register(ClientHistory)
+class ClientHistoryAdmin(admin.ModelAdmin):
+    list_display = ('client', 'projects_completed', 'total_spending', 'average_project_value', 'latest_project_date')
+    inlines = [CommunicationInline]
+    readonly_fields = ('average_project_value',)
+
+@admin.register(ContactPerson)
+class ContactPersonAdmin(admin.ModelAdmin):
+    list_display = ('name', 'client', 'position', 'department', 'primary_contact', 'direct_email', 'phone')
+    list_filter = ('primary_contact', 'client')
+    search_fields = ('name', 'client__name', 'position', 'direct_email')
+
+@admin.register(Communication)
+class CommunicationAdmin(admin.ModelAdmin):
+    list_display = ('date', 'client_name', 'comm_type', 'contact_person', 'staff_member', 'summary', 'follow_up_required')
+    list_filter = ('comm_type', 'follow_up_required', 'date')
+    search_fields = ('summary', 'client_history__client__name', 'contact_person__name')
+    date_hierarchy = 'date'
+    
+    def client_name(self, obj):
+        return obj.client_history.client.name
+    client_name.short_description = 'Client'
+
+@admin.register(ClientDocument)
+class ClientDocumentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'client', 'doc_type', 'upload_date', 'expiration_date')
+    list_filter = ('doc_type', 'upload_date')
+    search_fields = ('title', 'client__name', 'notes', 'tags')
+    date_hierarchy = 'upload_date'

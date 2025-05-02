@@ -14,8 +14,12 @@ from .views import (
     machine_scanner_view, machine_lookup,
     quick_usage_start, quick_usage_end,
     quick_maintenance_report,
+    client_list, client_detail,
+    client_create, client_update, client_delete,
+    contact_create, contact_update, contact_delete,
+    communication_add, document_delete,
     test_view, profile_view, dashboard_view,
-    # New views
+    # New
     machine_usage_list, maintenance_list, machine_usage_report
 )
 
@@ -78,4 +82,16 @@ urlpatterns = [
     path('machines/usage/<int:usage_id>/success/', machine_usage_success, name='machine_usage_success'),
     path('machines/<str:machine_id>/maintenance/add/', machine_maintenance_add, name='machine_maintenance_add'),
     path('machines/<str:machine_id>/consumable/add/', machine_consumable_add, name='machine_consumable_add'),
+    
+    # Client URLs
+    path('clients/', client_list, name='client_list'),
+    path('clients/create/', client_create, name='client_create'),
+    path('clients/<str:client_id>/', client_detail, name='client_detail'),
+    path('clients/<str:client_id>/update/', client_update, name='client_update'),
+    path('clients/<str:client_id>/delete/', client_delete, name='client_delete'),
+    path('clients/<str:client_id>/contact/add/', contact_create, name='contact_create'),
+    path('contacts/<int:contact_id>/update/', contact_update, name='contact_update'),
+    path('contacts/<int:contact_id>/delete/', contact_delete, name='contact_delete'),
+    path('clients/<str:client_id>/communication/add/', communication_add, name='communication_add'),
+    path('documents/<int:document_id>/delete/', document_delete, name='document_delete'),
 ]

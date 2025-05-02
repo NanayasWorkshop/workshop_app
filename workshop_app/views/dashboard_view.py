@@ -5,7 +5,8 @@ from django.db.models import Count
 from ..models import (
     MaterialCategory, MaterialType, Material, 
     MachineType, Machine, Operator,
-    MaterialTransaction, MachineUsage
+    MaterialTransaction, MachineUsage,
+    Client, ContactPerson
 )
 
 @login_required
@@ -28,6 +29,11 @@ def dashboard_view(request):
     maintenance_machines = Machine.objects.filter(status='maintenance').count()
     out_of_order_machines = Machine.objects.filter(status='out_of_order').count()
     
+    # Client statistics
+    clients_count = Client.objects.count()
+    active_clients = Client.objects.filter(status='active').count()
+    prospect_clients = Client.objects.filter(status='prospect').count()
+    
     # Operator count
     operators_count = Operator.objects.count()
     
@@ -47,6 +53,9 @@ def dashboard_view(request):
         'active_machines': active_machines,
         'maintenance_machines': maintenance_machines,
         'out_of_order_machines': out_of_order_machines,
+        'clients_count': clients_count,
+        'active_clients': active_clients,
+        'prospect_clients': prospect_clients,
         'operators_count': operators_count,
     }
     

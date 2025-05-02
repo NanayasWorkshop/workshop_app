@@ -63,6 +63,25 @@
             </div>
         </div>
         
+        <!-- Clients Stats -->
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">Clients</h3>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">{{ stats.clients_count }}</div>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.active_clients }}</div>
+                    <div>Active</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ stats.prospect_clients }}</div>
+                    <div>Prospects</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="{% url 'workshop_app:client_list' %}" class="btn">View All</a>
+            </div>
+        </div>
+        
         <!-- User Stats -->
         <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h3 style="margin-top: 0;">System</h3>
@@ -86,6 +105,9 @@
         </a>
         <a href="{% url 'workshop_app:machine_create' %}" style="flex: 1; min-width: 200px; background-color: #28a745; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div style="font-size: 1.2rem; font-weight: bold;">Add New Machine</div>
+        </a>
+        <a href="{% url 'workshop_app:client_create' %}" style="flex: 1; min-width: 200px; background-color: #17a2b8; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 1.2rem; font-weight: bold;">Add New Client</div>
         </a>
         <a href="{% url 'workshop_app:scanner' %}" style="flex: 1; min-width: 200px; background-color: #6f42c1; color: white; padding: 1.5rem; border-radius: 8px; text-decoration: none; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div style="font-size: 1.2rem; font-weight: bold;">Material Scanner</div>
