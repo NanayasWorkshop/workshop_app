@@ -83,7 +83,7 @@
                     <h3>Material Not Found</h3>
                     <p id="error-message"></p>
                     <div style="margin-top: 1rem;">
-                        <a href="{% url 'workshop_app:material_create' %}" class="btn">Add New Material</a>
+                        <a id="addNewButton" href="{% url 'workshop_app:material_create' %}" class="btn">Add New Material</a>
                     </div>
                 </div>
             </div>
@@ -103,6 +103,7 @@
             const searchButton = document.getElementById('searchButton');
             const resultContainer = document.getElementById('result-container');
             const errorContainer = document.getElementById('error-container');
+            const addNewButton = document.getElementById('addNewButton');
             
             // Results elements
             const resultId = document.getElementById('result-id');
@@ -227,6 +228,13 @@
                         } else {
                             // Material not found
                             errorMessage.textContent = data.message || "Material not found. Please try again or add a new material.";
+                            
+                            // Update the "Add New Material" button to include the scanned ID
+                            if (data.scanned_id) {
+                                addNewButton.href = "{% url 'workshop_app:material_create' %}?scanned_id=" + encodeURIComponent(data.scanned_id);
+                            }
+                            
+                            // Show error
                             errorContainer.style.display = 'block';
                         }
                     })
