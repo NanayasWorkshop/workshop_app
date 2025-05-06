@@ -11,9 +11,7 @@ from .views import (
     machine_status_update,
     machine_usage_add, machine_usage_success,
     machine_maintenance_add, machine_consumable_add,
-    machine_scanner_view, machine_lookup,
-    quick_usage_start, quick_usage_end,
-    quick_maintenance_report,
+    machine_usage_list, maintenance_list, machine_usage_report,
     client_list, client_detail,
     client_create, client_update, client_delete,
     contact_create, contact_update, contact_delete,
@@ -26,7 +24,6 @@ from .views import (
     job_machine_add, job_machine_end, job_machine_list,
     job_financial_summary, job_report,
     # Existing
-    machine_usage_list, maintenance_list, machine_usage_report,
     test_view, profile_view, dashboard_view
 )
 
@@ -66,19 +63,12 @@ urlpatterns = [
     path('machines/', machine_list, name='machine_list'),
     path('machines/create/', machine_create, name='machine_create'),
     
-    # Machine Scanner URLs - IMPORTANT: These must come BEFORE the machine_detail URL
-    path('machines/scanner/', machine_scanner_view, name='machine_scanner'),
-    path('api/machine-lookup/', machine_lookup, name='machine_lookup'),
-    path('machines/<str:machine_id>/usage/start/', quick_usage_start, name='quick_usage_start'),
-    path('machines/<str:machine_id>/usage/end/', quick_usage_end, name='quick_usage_end'),
-    path('machines/<str:machine_id>/maintenance/report/', quick_maintenance_report, name='quick_maintenance_report'),
-    
     # Machine Reports URLs
     path('machines/usage/list/', machine_usage_list, name='machine_usage_list'),
     path('machines/maintenance/list/', maintenance_list, name='maintenance_list'),
     path('machines/usage/report/', machine_usage_report, name='machine_usage_report'),
     
-    # Machine detail and other machine-specific URLs - THESE MUST COME AFTER machine/scanner/
+    # Machine detail and other machine-specific URLs
     path('machines/<str:machine_id>/', machine_detail, name='machine_detail'),
     path('machines/<str:machine_id>/update/', machine_update, name='machine_update'),
     path('machines/<str:machine_id>/delete/', machine_delete, name='machine_delete'),

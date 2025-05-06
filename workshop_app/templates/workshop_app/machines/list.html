@@ -110,6 +110,8 @@
     
     <div style="margin-top: 1rem;">
         <a href="{% url 'workshop_app:machine_create' %}" class="btn">Add New Machine</a>
-        <a href="{% url 'workshop_app:machine_scanner' %}" class="btn">Machine Scanner</a>
+        {% if active_job %}
+        <a href="{% url 'workshop_app:job_machine_add_active' %}" class="btn" style="background-color: #28a745;">Add Machine to Active Job</a>
+        {% endif %}
     </div>
 {% endblock %}

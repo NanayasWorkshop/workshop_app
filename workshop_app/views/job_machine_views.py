@@ -72,8 +72,8 @@ def job_machine_add(request, job_id=None, machine_id=None):
                     f"Started tracking usage of '{machine.name}' for job '{job.project_name}'"
                 )
                 
-                # Redirect to scanner to scan more
-                return redirect('workshop_app:job_scanner_view')
+                # Redirect to job detail
+                return redirect('workshop_app:job_detail', job_id=job.job_id)
         else:
             form = QuickMachineStartForm(machine=machine)
         
@@ -86,6 +86,13 @@ def job_machine_add(request, job_id=None, machine_id=None):
         }
         
         return render(request, 'workshop_app/jobs/machine_quick_start.html', context)
+    
+    # Handle machine selection or manual machine entry
+    if request.method == 'POST' and not machine:
+        # Check if the user is selecting a machine from a dropdown
+        machine_id_from_form = request.POST.get('machine_selection', '')
+        if machine_id_from_form:
+            return redirect('workshop_app:job_machine_add_specific', job_id=job.job_id, machine_id=machine_id_from_form)
     
     # Standard machine usage form
     if request.method == 'POST':
@@ -131,12 +138,16 @@ def job_machine_add(request, job_id=None, machine_id=None):
         
         form = JobMachineForm(job=job, user=request.user, machine=machine, initial=initial)
     
+    # Get available machines for selection
+    available_machines = Machine.objects.filter(status='active').order_by('name')
+    
     context = {
         'form': form,
         'job': job,
         'machine': machine,
         'title': f"Add Machine Usage to {job.project_name}",
         'quick_start': False,
+        'available_machines': available_machines
     }
     
     return render(request, 'workshop_app/jobs/machine_form.html', context)

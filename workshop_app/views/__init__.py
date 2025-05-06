@@ -16,11 +16,6 @@ from .machine_views import (
     machine_usage_add, machine_usage_success,
     machine_maintenance_add, machine_consumable_add
 )
-from .machine_scanner_views import (
-    machine_scanner_view, machine_lookup,
-    quick_usage_start, quick_usage_end,
-    quick_maintenance_report
-)
 from .machine_reports import (
     machine_usage_list, maintenance_list, machine_usage_report
 )
