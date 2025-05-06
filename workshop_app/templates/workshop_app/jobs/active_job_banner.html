@@ -1,0 +1,26 @@
+
+{% if active_job %}
+<!-- Active Job Banner -->
+<div class="active-job-banner" style="background-color: {% if active_job.is_personal %}#6c757d{% else %}#007bff{% endif %}; color: white; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h3 style="margin: 0; font-size: 1.2rem; color: white;">
+            ACTIVE JOB: {{ active_job.job_id }} - {{ active_job.project_name }}
+        </h3>
+        {% if active_job.client and not active_job.is_personal %}
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                Client: {{ active_job.client.name }} | Status: {{ active_job.status.name }}
+            </p>
+        {% elif active_job.is_personal %}
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                Personal Job | All unassigned work will be tracked here
+            </p>
+        {% endif %}
+    </div>
+    <div>
+        {% if not active_job.is_personal %}
+            <a href="{% url 'workshop_app:job_deactivate' %}?next={{ request.path }}" class="btn" style="background-color: #dc3545; color: white; margin-left: 0.5rem;">End Job</a>
+        {% endif %}
+        <a href="{% url 'workshop_app:job_detail' active_job.job_id %}" class="btn" style="background-color: white; color: #333; margin-left: 0.5rem;">View Details</a>
+    </div>
+</div>
+{% endif %}

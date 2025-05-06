@@ -1,0 +1,260 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Dashboard | Workshop Management System{% endblock %}
+
+{% block content %}
+    {% if active_job %}
+    <!-- Active Job Banner -->
+    <div class="active-job-banner" style="background-color: {% if active_job.is_personal %}#6c757d{% else %}#007bff{% endif %}; color: white; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin: 0; font-size: 1.2rem; color: white;">
+                ACTIVE JOB: {{ active_job.job_id }} - {{ active_job.project_name }}
+            </h3>
+            {% if active_job.client and not active_job.is_personal %}
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                    Client: {{ active_job.client.name }} | Status: {{ active_job.status.name }}
+                </p>
+            {% elif active_job.is_personal %}
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">
+                    Personal Job | All unassigned work will be tracked here
+                </p>
+            {% endif %}
+        </div>
+        <div>
+            {% if not active_job.is_personal %}
+                <a href="{% url 'workshop_app:job_deactivate' %}" class="btn" style="background-color: #dc3545; color: white; margin-left: 0.5rem;">End Job</a>
+            {% endif %}
+            <a href="{% url 'workshop_app:job_detail' active_job.job_id %}" class="btn" style="background-color: white; color: #333; margin-left: 0.5rem;">View Details</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Scanning Section -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Job Scanning -->
+        <div style="flex: 1; min-width: 350px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">Scan & Activate</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <a href="{% url 'workshop_app:job_scanner_view' %}" class="btn" style="background-color: #007bff; color: white; text-align: center; padding: 1rem; font-size: 1.2rem;">
+                    <i class="fas fa-qrcode"></i> SCAN JOB
+                </a>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{% url 'workshop_app:scanner' %}" class="btn" style="flex: 1; text-align: center;">
+                        <i class="fas fa-boxes"></i> Scan Material
+                    </a>
+                    <a href="{% url 'workshop_app:machine_scanner' %}" class="btn" style="flex: 1; text-align: center;">
+                        <i class="fas fa-cogs"></i> Scan Machine
+                    </a>
+                </div>
+            </div>
+            
+            {% if active_job %}
+            <div style="margin-top: 1.5rem;">
+                <h4>Quick Add to Active Job</h4>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{% url 'workshop_app:job_material_add_active' %}" class="btn" style="flex: 1; text-align: center; background-color: #28a745; color: white;">
+                        Add Material
+                    </a>
+                    <a href="{% url 'workshop_app:job_machine_add_active' %}" class="btn" style="flex: 1; text-align: center; background-color: #28a745; color: white;">
+                        Add Machine
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Current Jobs Overview -->
+        <div style="flex: 1; min-width: 350px; background-color: #f8f9fa; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+                <span>Active Jobs</span>
+                <a href="{% url 'workshop_app:job_list' %}" style="font-size: 0.8rem; text-decoration: none;">View All</a>
+            </h3>
+            {% if active_jobs %}
+                <div class="job-list" style="margin-top: 1rem;">
+                    {% for job in active_jobs %}
+                        <div class="job-item" style="margin-bottom: 0.75rem; padding: 0.75rem; background-color: white; border-radius: 4px; border-left: 4px solid #28a745;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>{{ job.job_id }}</strong> - {{ job.project_name }}
+                                    {% if job.client %}
+                                        <div style="font-size: 0.8rem;">{{ job.client.name }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if job == active_job %}
+                                        <span style="font-size: 0.8rem; background-color: #007bff; color: white; padding: 0.25rem 0.5rem; border-radius: 4px;">Active</span>
+                                    {% else %}
+                                        <a href="{% url 'workshop_app:job_activate' job.job_id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Activate</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top: 1rem; text-align: right;">
+                    <a href="{% url 'workshop_app:job_create' %}" class="btn" style="background-color: #28a745; color: white;">New Job</a>
+                </div>
+            {% else %}
+                <p>No active jobs. Create a new job to get started.</p>
+                <a href="{% url 'workshop_app:job_create' %}" class="btn" style="background-color: #28a745; color: white;">Create Job</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Secondary Information -->
+    <div class="collapsible-section">
+        <h3 class="collapsible-header" onclick="toggleSection('inventory-section')" style="cursor: pointer; background-color: #f8f9fa; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem;">
+            <i class="fas fa-chevron-down" id="inventory-icon"></i> Inventory Status
+        </h3>
+        <div id="inventory-section" class="collapsible-content" style="display: none;">
+            <!-- Low Stock Alerts -->
+            <div style="margin-bottom: 1.5rem;">
+                <h4>Low Stock Items ({{ stats.low_stock_count }})</h4>
+                {% if stats.low_stock_materials %}
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Current Stock</th>
+                                    <th>Min. Level</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for material in stats.low_stock_materials %}
+                                    <tr class="low-stock">
+                                        <td>{{ material.material_id }}</td>
+                                        <td>{{ material.name }}</td>
+                                        <td>{{ material.current_stock }} {{ material.unit_of_measurement }}</td>
+                                        <td>{{ material.minimum_stock_level }} {{ material.unit_of_measurement }}</td>
+                                        <td>
+                                            <a href="{% url 'workshop_app:material_entry_add' material.material_id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Add Stock</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if stats.low_stock_count > 5 %}
+                        <div style="text-align: right; margin-top: 0.5rem;">
+                            <a href="{% url 'workshop_app:material_list' %}?status=low_stock" style="font-size: 0.8rem;">View all {{ stats.low_stock_count }} low stock items</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p>No low stock items.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Machines Status -->
+            <div>
+                <h4>Machine Status</h4>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px; padding: 0.75rem; background-color: #d4edda; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;">{{ stats.active_machines }}</div>
+                        <div>Active</div>
+                    </div>
+                    <div style="flex: 1; min-width: 150px; padding: 0.75rem; background-color: #fff3cd; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;">{{ stats.maintenance_machines }}</div>
+                        <div>In Maintenance</div>
+                    </div>
+                    <div style="flex: 1; min-width: 150px; padding: 0.75rem; background-color: #f8f9fa; border-radius: 4px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;">{{ stats.machines_count }}</div>
+                        <div>Total Machines</div>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <a href="{% url 'workshop_app:machine_list' %}" style="font-size: 0.8rem;">View all machines</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="collapsible-section" style="margin-top: 1rem;">
+        <h3 class="collapsible-header" onclick="toggleSection('recent-activity-section')" style="cursor: pointer; background-color: #f8f9fa; padding: 0.75rem; border-radius: 4px; margin-bottom: 0.5rem;">
+            <i class="fas fa-chevron-down" id="recent-activity-icon"></i> Recent Activity
+        </h3>
+        <div id="recent-activity-section" class="collapsible-content" style="display: none;">
+            <!-- Recent Material Usage -->
+            {% if recent_transactions %}
+                <h4>Recent Material Transactions</h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Material</th>
+                                <th>Action</th>
+                                <th>Quantity</th>
+                                <th>Operator</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.transaction_date|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ transaction.material.name }}</td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'consumption' %}
+                                            <span style="color: red;">Used</span>
+                                        {% else %}
+                                            <span style="color: green;">Returned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ transaction.quantity }} {{ transaction.material.unit_of_measurement }}</td>
+                                    <td>{{ transaction.operator_name|default:"Unknown" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            
+            <!-- Recent Machine Usage -->
+            {% if recent_usages %}
+                <h4 style="margin-top: 1.5rem;">Recent Machine Usage</h4>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Machine</th>
+                                <th>Duration</th>
+                                <th>Operator</th>
+                                <th>Job Reference</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usage in recent_usages %}
+                                <tr>
+                                    <td>{{ usage.start_time|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ usage.machine.name }}</td>
+                                    <td>{{ usage.get_duration_display }}</td>
+                                    <td>{{ usage.operator_name|default:"Unknown" }}</td>
+                                    <td>{{ usage.job_reference|default:"-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- JavaScript for collapsible sections -->
+    <script>
+        function toggleSection(sectionId) {
+            var content = document.getElementById(sectionId);
+            var icon = document.getElementById(sectionId.replace('section', 'icon'));
+            
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                icon.className = "fas fa-chevron-up";
+            } else {
+                content.style.display = "none";
+                icon.className = "fas fa-chevron-down";
+            }
+        }
+    </script>
+{% endblock %}

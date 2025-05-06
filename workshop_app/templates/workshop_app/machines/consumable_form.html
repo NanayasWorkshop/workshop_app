@@ -1,0 +1,130 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">← Back to Machine</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Machine Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Machine ID:</th>
+                    <td>{{ machine.machine_id }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ machine.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Type:</th>
+                    <td>{{ machine.machine_type.name }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>Consumable Information</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.name.id_for_label }}">Name:</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div style="color: red;">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.description.id_for_label }}">Description:</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div style="color: red;">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.part_number.id_for_label }}">Part Number:</label>
+                {{ form.part_number }}
+                {% if form.part_number.errors %}
+                    <div style="color: red;">{{ form.part_number.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <h3>Stock Information</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.current_stock.id_for_label }}">Current Stock:</label>
+                {{ form.current_stock }}
+                {% if form.current_stock.errors %}
+                    <div style="color: red;">{{ form.current_stock.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.minimum_stock_level.id_for_label }}">Minimum Stock Level:</label>
+                {{ form.minimum_stock_level }}
+                {% if form.minimum_stock_level.errors %}
+                    <div style="color: red;">{{ form.minimum_stock_level.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <h3>Cost Information</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.cost_per_unit.id_for_label }}">Cost per Unit:</label>
+                {{ form.cost_per_unit }}
+                {% if form.cost_per_unit.errors %}
+                    <div style="color: red;">{{ form.cost_per_unit.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.expected_lifetime_hours.id_for_label }}">Expected Lifetime (hours):</label>
+                {{ form.expected_lifetime_hours }}
+                {% if form.expected_lifetime_hours.errors %}
+                    <div style="color: red;">{{ form.expected_lifetime_hours.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <h3>Supplier Information</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.supplier_name.id_for_label }}">Supplier Name:</label>
+                {{ form.supplier_name }}
+                {% if form.supplier_name.errors %}
+                    <div style="color: red;">{{ form.supplier_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.supplier_url.id_for_label }}">Supplier URL:</label>
+                {{ form.supplier_url }}
+                {% if form.supplier_url.errors %}
+                    <div style="color: red;">{{ form.supplier_url.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Save Consumable</button>
+                <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

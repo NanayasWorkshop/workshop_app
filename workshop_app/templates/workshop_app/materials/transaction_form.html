@@ -1,0 +1,96 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:scanner' %}" class="btn btn-secondary">← Back to Scanner</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Material Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Material ID:</th>
+                    <td>{{ material.material_id }}</td>
+                </tr>
+                {% if material.serial_number %}
+                <tr>
+                    <th style="text-align: left;">Serial Number:</th>
+                    <td>{{ material.serial_number }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ material.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Current Stock:</th>
+                    <td>{{ material.current_stock }} {{ material.unit_of_measurement }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>{{ action_verb }} Material</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.quantity.id_for_label }}">{{ form.quantity.label }}:</label>
+                {{ form.quantity }}
+                {% if form.quantity.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.quantity.help_text }}</div>
+                {% endif %}
+                {% if form.quantity.errors %}
+                    <div style="color: red;">{{ form.quantity.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.job_reference.id_for_label }}">Job Reference (Optional):</label>
+                {{ form.job_reference }}
+                {% if form.job_reference.errors %}
+                    <div style="color: red;">{{ form.job_reference.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.operator_name.id_for_label }}">Operator Name:</label>
+                {{ form.operator_name }}
+                {% if form.operator_name.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.operator_name.help_text }}</div>
+                {% endif %}
+                {% if form.operator_name.errors %}
+                    <div style="color: red;">{{ form.operator_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div style="color: red;">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">{{ action_verb }} Material</button>
+                <a href="{% url 'workshop_app:scanner' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

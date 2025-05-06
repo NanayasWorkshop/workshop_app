@@ -1,0 +1,148 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}Machine Usage Report | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_usage_list' %}" class="btn btn-secondary">← Back to Usage Records</a>
+    </div>
+    
+    <h2>Machine Usage Report</h2>
+    
+    <!-- Filter Form -->
+    <div class="filter-form">
+        <form method="get">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                <div>
+                    <label for="date_from">From Date:</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ date_from|date:'Y-m-d' }}">
+                </div>
+                
+                <div>
+                    <label for="date_to">To Date:</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ date_to|date:'Y-m-d' }}">
+                </div>
+                
+                <div>
+                    <label for="machine_type">Machine Type:</label>
+                    <select name="machine_type" id="machine_type">
+                        <option value="">All Types</option>
+                        {% for type in machine_types %}
+                            <option value="{{ type.code }}" {% if selected_machine_type == type.code %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="period">Period:</label>
+                    <select name="period" id="period">
+                        <option value="day" {% if period == 'day' %}selected{% endif %}>Daily</option>
+                        <option value="week" {% if period == 'week' %}selected{% endif %}>Weekly</option>
+                        <option value="month" {% if period == 'month' %}selected{% endif %}>Monthly</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <button type="submit" class="btn">Generate Report</button>
+                    <a href="{% url 'workshop_app:machine_usage_report' %}" class="btn btn-secondary">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <h3>Report Period: {{ date_from|date:"Y-m-d" }} to {{ date_to|date:"Y-m-d" }}</h3>
+    
+    <!-- Summary Stats -->
+    <div style="margin-bottom: 2rem;">
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Usage Statistics by Machine Type</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Machine Type</th>
+                        <th>Total Hours</th>
+                        <th>Number of Uses</th>
+                        <th>Average Duration</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type_code, stats in machine_type_stats.items %}
+                        <tr>
+                            <td><strong>{{ stats.name }}</strong></td>
+                            <td>{{ stats.total_hours|floatformat:1 }}</td>
+                            <td>{{ stats.count }}</td>
+                            <td>
+                                {% if stats.count > 0 %}
+                                    {{ stats.total_hours|floatformat:1|default:0|stringformat:"f" }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </td>
+                            <td>CHF{{ stats.total_cost|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No data available for the selected period.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Top Used Machines -->
+    <div style="margin-bottom: 2rem;">
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 1rem;">Most Used Machines</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Machine</th>
+                        <th>Total Hours</th>
+                        <th>Number of Uses</th>
+                        <th>Total Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for machine_id, stats in top_machines %}
+                        <tr>
+                            <td><strong>{{ stats.name }}</strong></td>
+                            <td>{{ stats.total_hours|floatformat:1 }}</td>
+                            <td>{{ stats.count }}</td>
+                            <td>CHF{{ stats.total_cost|floatformat:2 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">No data available for the selected period.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Additional Report Information -->
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Total Usage Records</h3>
+            <div style="font-size: 1.8rem; font-weight: bold;">{{ total_usage_count }}</div>
+            <div style="color: #666;">For selected period</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px; background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Report Date Range</h3>
+            <div style="font-size: 1.2rem;">{{ date_from|date:"Y-m-d" }} to {{ date_to|date:"Y-m-d" }}</div>
+            <div style="color: #666;">{{ date_from|date:"Y-m-d"|timesince:date_to }} range</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 1.5rem;">
+        <a href="{% url 'workshop_app:machine_usage_list' %}" class="btn">Back to Usage Records</a>
+        <button onclick="window.print()" class="btn btn-secondary">Print Report</button>
+    </div>
+{% endblock %}
