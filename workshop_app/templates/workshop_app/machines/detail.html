@@ -105,6 +105,13 @@
                     <td>{{ machine.warranty_end_date|date:"Y-m-d"|default:"Not specified" }}</td>
                 </tr>
             </table>
+            
+            {% if machine.notes %}
+            <h3>Notes</h3>
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                {{ machine.notes|linebreaks }}
+            </div>
+            {% endif %}
         </div>
         
         <!-- Right Column: Technical Specs & Cost Info -->

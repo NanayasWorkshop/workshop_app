@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 
-from ..models import Material, MaterialTransaction
+from ..models import Material, MaterialTransaction, MaterialAttachment, AttachmentType
 from ..forms import MaterialTransactionForm
 
 @login_required
@@ -41,6 +41,18 @@ def material_lookup(request):
             material = Material.objects.get(
                 Q(material_id=identifier) | Q(serial_number=identifier)
             )
+            
+        # Look for a product image
+        product_image = None
+        try:
+            product_attachment_type = AttachmentType.objects.get(name='Product')
+            product_image = MaterialAttachment.objects.filter(
+                material=material,
+                attachment_type=product_attachment_type
+            ).first()
+        except AttachmentType.DoesNotExist:
+            # Product attachment type doesn't exist
+            pass
         
         # Return material details as JSON
         data = {
@@ -55,7 +67,12 @@ def material_lookup(request):
             'price_per_unit': str(material.price_per_unit) if material.price_per_unit else '',
             'detail_url': f"/materials/{material.material_id}/",
             'transaction_url': f"/materials/{material.material_id}/transaction/",
+            'has_product_image': product_image is not None,
         }
+        
+        # Add the image URL if available
+        if product_image:
+            data['product_image_url'] = product_image.file.url
         
         return JsonResponse(data)
         

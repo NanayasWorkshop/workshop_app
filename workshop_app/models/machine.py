@@ -54,6 +54,9 @@ class Machine(models.Model):
     # current_job = models.ForeignKey('Job', null=True, blank=True, on_delete=models.SET_NULL)
     reserved_until = models.DateTimeField(null=True, blank=True)
     
+    # Notes
+    notes = models.TextField(blank=True, help_text="Additional notes about this machine")
+    
     # QR Code
     qr_code = models.ImageField(upload_to='qr_codes/machines/', blank=True)
     

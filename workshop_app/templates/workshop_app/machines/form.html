@@ -241,6 +241,18 @@
                 </div>
             </div>
             
+            <h3>Notes</h3>
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.notes.id_for_label }}">Additional Notes:</label>
+                {{ form.notes }}
+                {% if form.notes.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.notes.help_text }}</div>
+                {% endif %}
+                {% if form.notes.errors %}
+                    <div style="color: red;">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
             <div style="margin-top: 1rem; text-align: right;">
                 <button type="submit" class="btn">Save Machine</button>
                 <a href="{% if is_new %}{% url 'workshop_app:machine_list' %}{% else %}{% url 'workshop_app:machine_detail' machine.machine_id %}{% endif %}" class="btn btn-secondary">Cancel</a>

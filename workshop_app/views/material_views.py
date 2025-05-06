@@ -20,6 +20,7 @@ def material_list(request):
     category_code = request.GET.get('category', '')
     type_code = request.GET.get('type', '')
     search_query = request.GET.get('search', '')
+    color_filter = request.GET.get('color', '')
     
     # Start with all materials
     materials = Material.objects.all()
@@ -30,6 +31,9 @@ def material_list(request):
     
     if type_code:
         materials = materials.filter(material_type__code=type_code)
+    
+    if color_filter:
+        materials = materials.filter(color=color_filter)
     
     if search_query:
         materials = materials.filter(
@@ -48,15 +52,29 @@ def material_list(request):
     if category_code:
         material_types = MaterialType.objects.filter(category__code=category_code)
     
+    # Get all distinct colors for the filter dropdown
+    colors = Material.objects.exclude(color='').values_list('color', flat=True).distinct().order_by('color')
+    
     # Count low stock items
     low_stock_count = sum(1 for m in materials if m.is_low_stock())
     
+    # For each material, find a product image attachment
+    for material in materials:
+        product_image = MaterialAttachment.objects.filter(
+            material=material, 
+            attachment_type__name='Product'
+        ).first()
+        
+        material.product_image = product_image
+
     context = {
         'materials': materials,
         'categories': categories,
         'material_types': material_types,
+        'colors': colors,
         'selected_category': category_code,
         'selected_type': type_code,
+        'selected_color': color_filter,
         'search_query': search_query,
         'low_stock_count': low_stock_count,
     }

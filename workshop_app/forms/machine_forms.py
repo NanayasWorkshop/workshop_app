@@ -12,11 +12,12 @@ class MachineForm(forms.ModelForm):
             'purchase_price', 'warranty_end_date',
             'working_area', 'power_requirements', 'maximum_work_speed', 'precision',
             'hourly_rate', 'setup_time', 'setup_rate', 'cleanup_time', 'cleanup_rate',
-            'status'
+            'status', 'notes'
         ]
         widgets = {
             'purchase_date': forms.DateInput(attrs={'type': 'date'}),
             'warranty_end_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
         }
     
     def clean_machine_id(self):
@@ -38,6 +39,7 @@ class MachineForm(forms.ModelForm):
         # Add help text
         self.fields['machine_id'].help_text = "Format: TYPE-NUMBER (e.g., FDM-001)"
         self.fields['serial_number'].help_text = "Manufacturer's serial number"
+        self.fields['notes'].help_text = "Additional notes about this machine (maintenance schedules, special requirements, etc.)"
         
         # Make certain fields required
         self.fields['machine_type'].required = True
