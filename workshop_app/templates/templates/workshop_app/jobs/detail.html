@@ -1,0 +1,359 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ job.project_name }} | Jobs | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:job_list' %}" class="btn btn-secondary">← Back to Jobs</a>
+    </div>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <h2>Job: {{ job.project_name }}</h2>
+    
+    <div style="margin-bottom: 1rem; padding: 1rem; background-color: {% if job.is_personal %}#6c757d{% else %}#f8f9fa{% endif %}; border-radius: 4px; {% if job.is_personal %}color: white;{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+            <div>
+                <h3 style="margin-top: 0;">Job Information</h3>
+                <div>
+                    <strong>Job ID:</strong> {{ job.job_id }}
+                </div>
+                <div>
+                    <strong>Status:</strong> 
+                    <span style="
+                        display: inline-block;
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 4px;
+                        background-color: {{ job.status.color_code|default:'#cccccc' }};
+                        color: {% if job.status.color_code == '#ffffff' %}#333333{% else %}#ffffff{% endif %};
+                    ">
+                        {{ job.status.name }}
+                    </span>
+                </div>
+                <div>
+                    <strong>Priority:</strong> {{ job.get_priority_display }}
+                </div>
+                {% if job.client %}
+                <div>
+                    <strong>Client:</strong> {{ job.client.name }}
+                    {% if job.contact_person %}
+                        (Contact: {{ job.contact_person.name }})
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if job.is_personal %}
+                <div>
+                    <strong>Personal Job:</strong> Yes (Owner: {{ job.owner.get_full_name|default:job.owner.username }})
+                </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <h3 style="margin-top: 0;">Timeline</h3>
+                <div>
+                    <strong>Created:</strong> {{ job.created_date|date:"Y-m-d" }}
+                </div>
+                <div>
+                    <strong>Created By:</strong> {{ job.created_by.get_full_name|default:job.created_by.username|default:"Unknown" }}
+                </div>
+                <div>
+                    <strong>Start Date:</strong> {{ job.start_date|date:"Y-m-d"|default:"Not set" }}
+                </div>
+                <div>
+                    <strong>Deadline:</strong> {{ job.deadline|date:"Y-m-d"|default:"No deadline" }}
+                </div>
+                <div>
+                    <strong>Expected Completion:</strong> {{ job.expected_completion|date:"Y-m-d"|default:"Not estimated" }}
+                </div>
+                {% if job.end_date %}
+                <div>
+                    <strong>End Date:</strong> {{ job.end_date|date:"Y-m-d" }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <h3 style="margin-top: 0;">Progress</h3>
+                <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 20px; margin-bottom: 0.5rem;">
+                    <div style="width: {{ job.percent_complete }}%; background-color: 
+                        {% if job.percent_complete >= 80 %}#28a745
+                        {% elif job.percent_complete >= 40 %}#17a2b8
+                        {% else %}#007bff{% endif %}; 
+                        height: 20px; border-radius: 4px;"
+                    ></div>
+                </div>
+                <div style="font-size: 1.1rem; text-align: center; margin-bottom: 0.5rem;">{{ job.percent_complete }}% Complete</div>
+                
+                <!-- Quick Status Change Form -->
+                <form method="post" action="{% url 'workshop_app:job_status_change' job.job_id %}" style="margin-top: 0.5rem;">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 0.5rem;">
+                        <select name="status" style="flex: 1;">
+                            {% for status in all_statuses %}
+                                <option value="{{ status.id }}" {% if job.status == status %}selected{% endif %}>
+                                    {{ status.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn">Update Status</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div>
+                <h3 style="margin-top: 0;">Actions</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% if not is_active_job %}
+                        <a href="{% url 'workshop_app:job_activate' job.job_id %}" class="btn" style="background-color: #28a745;">
+                            <strong>Activate This Job</strong>
+                        </a>
+                    {% else %}
+                        <span class="btn" style="background-color: #6c757d; color: white; cursor: default;">
+                            Currently Active
+                        </span>
+                    {% endif %}
+                    <a href="{% url 'workshop_app:job_material_add' job.job_id %}" class="btn">Add Material</a>
+                    <a href="{% url 'workshop_app:job_machine_add' job.job_id %}" class="btn">Add Machine Usage</a>
+                    <a href="{% url 'workshop_app:job_financial_summary' job.job_id %}" class="btn">Financial Summary</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description Section -->
+    {% if job.description %}
+    <h3>Description</h3>
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        {{ job.description|linebreaks }}
+    </div>
+    {% endif %}
+    
+    <!-- Materials Section -->
+    <h3>Materials Used</h3>
+    {% if materials %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Material</th>
+                    <th>Quantity</th>
+                    <th>Result</th>
+                    <th>Cost</th>
+                    <th>Added By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in materials %}
+                    <tr>
+                        <td>{{ item.date_used|date:"Y-m-d H:i" }}</td>
+                        <td>{{ item.material.name }}</td>
+                        <td>{{ item.quantity }} {{ item.material.unit_of_measurement }}</td>
+                        <td>{{ item.get_result_display }}</td>
+                        <td>
+                            {% if item.unit_price %}
+                                CHF{{ item.get_total_price|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.added_by|default:"Unknown" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                {% if item.result != 'returned' %}
+                                    <a href="{% url 'workshop_app:job_material_return' item.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Return</a>
+                                {% endif %}
+                                <a href="{% url 'workshop_app:job_material_delete' item.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Remove</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No materials have been used for this job.</p>
+    {% endif %}
+    
+    <div style="margin: 1rem 0;">
+        <a href="{% url 'workshop_app:job_material_add' job.job_id %}" class="btn">Add Material</a>
+    </div>
+    
+    <!-- Machine Usage Section -->
+    <h3>Machine Usage</h3>
+    {% if machine_usages %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Started</th>
+                    <th>Machine</th>
+                    <th>Duration</th>
+                    <th>Setup</th>
+                    <th>Cleanup</th>
+                    <th>Operator</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usage in machine_usages %}
+                    <tr>
+                        <td>{{ usage.start_time|date:"Y-m-d H:i" }}</td>
+                        <td>{{ usage.machine.name }}</td>
+                        <td>
+                            {% if usage.end_time %}
+                                {{ usage.get_duration_display }}
+                            {% else %}
+                                <span style="color: #856404; background-color: #fff3cd; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                    In Progress
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ usage.setup_time }} min</td>
+                        <td>{{ usage.cleanup_time }} min</td>
+                        <td>{{ usage.operator_name|default:"Unknown" }}</td>
+                        <td>
+                            {% if usage.total_cost %}
+                                CHF{{ usage.total_cost|floatformat:2 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not usage.end_time %}
+                                <a href="{% url 'workshop_app:job_machine_end' usage.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">End Usage</a>
+                            {% else %}
+                                Completed
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No machine usage has been recorded for this job.</p>
+    {% endif %}
+    
+    <div style="margin: 1rem 0;">
+        <a href="{% url 'workshop_app:job_machine_add' job.job_id %}" class="btn">Add Machine Usage</a>
+        <a href="{% url 'workshop_app:job_machine_list' job.job_id %}" class="btn btn-secondary">View All Machine Usage</a>
+    </div>
+    
+    <!-- Milestones Section -->
+    <h3>Milestones</h3>
+    {% if milestones %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Completed Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for milestone in milestones %}
+                    <tr>
+                        <td>{{ milestone.name }}</td>
+                        <td>{{ milestone.due_date|date:"Y-m-d"|default:"-" }}</td>
+                        <td>
+                            {% if milestone.completed %}
+                                <span style="color: #155724; background-color: #d4edda; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                    Completed
+                                </span>
+                            {% else %}
+                                <span style="color: #0c5460; background-color: #d1ecf1; padding: 0.25rem 0.5rem; border-radius: 4px;">
+                                    In Progress
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ milestone.completed_date|date:"Y-m-d"|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'workshop_app:job_milestone_update' milestone.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No milestones have been defined for this job.</p>
+    {% endif %}
+    
+    <div style="margin: 1rem 0;">
+        <a href="{% url 'workshop_app:job_milestone_add' job.job_id %}" class="btn">Add Milestone</a>
+    </div>
+    
+    <!-- Financial Summary Section -->
+    <h3>Financial Summary</h3>
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Materials Cost</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">CHF{{ financial.material_cost|floatformat:2 }}</div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Machine Cost</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">CHF{{ financial.machine_cost|floatformat:2 }}</div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Labor Cost</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">CHF{{ financial.labor_cost|floatformat:2 }}</div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Total Cost</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">CHF{{ financial.total_cost|floatformat:2 }}</div>
+            </div>
+        </div>
+        
+        {% if financial.quoted_amount %}
+        <div style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Quoted Amount</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">CHF{{ financial.quoted_amount|floatformat:2 }}</div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Variance</h4>
+                <div style="font-size: 1.5rem; font-weight: bold; color: {% if financial.variance > 0 %}#dc3545{% else %}#28a745{% endif %};">
+                    CHF{{ financial.variance|floatformat:2 }}
+                </div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Profit Margin</h4>
+                <div style="font-size: 1.5rem; font-weight: bold; color: {% if financial.profit_margin < 0 %}#dc3545{% else %}#28a745{% endif %};">
+                    {{ financial.profit_margin|floatformat:1 }}%
+                </div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <h4>Billing Status</h4>
+                <div style="font-size: 1.5rem; font-weight: bold;">
+                    {{ financial.get_billing_status_display }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 1rem; text-align: right;">
+            <a href="{% url 'workshop_app:job_financial_summary' job.job_id %}" class="btn">View Full Financial Details</a>
+            <a href="{% url 'workshop_app:job_report' job.job_id %}" class="btn">Generate Job Report</a>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'workshop_app:job_update' job.job_id %}" class="btn">Edit Job</a>
+        <a href="{% url 'workshop_app:job_delete' job.job_id %}" class="btn btn-secondary">Delete Job</a>
+    </div>
+{% endblock %}

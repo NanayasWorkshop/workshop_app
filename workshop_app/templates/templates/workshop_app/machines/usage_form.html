@@ -1,0 +1,118 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">← Back to Machine</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Machine Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Machine ID:</th>
+                    <td>{{ machine.machine_id }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ machine.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Type:</th>
+                    <td>{{ machine.machine_type.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Hourly Rate:</th>
+                    <td>{% if machine.hourly_rate %}€{{ machine.hourly_rate }}{% else %}Not set{% endif %}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>Usage Details</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.start_time.id_for_label }}">Start Time:</label>
+                {{ form.start_time }}
+                {% if form.start_time.errors %}
+                    <div style="color: red;">{{ form.start_time.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.end_time.id_for_label }}">End Time:</label>
+                {{ form.end_time }}
+                {% if form.end_time.errors %}
+                    <div style="color: red;">{{ form.end_time.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.setup_time.id_for_label }}">Setup Time (minutes):</label>
+                {{ form.setup_time }}
+                {% if form.setup_time.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.setup_time.help_text }}</div>
+                {% endif %}
+                {% if form.setup_time.errors %}
+                    <div style="color: red;">{{ form.setup_time.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.cleanup_time.id_for_label }}">Cleanup Time (minutes):</label>
+                {{ form.cleanup_time }}
+                {% if form.cleanup_time.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.cleanup_time.help_text }}</div>
+                {% endif %}
+                {% if form.cleanup_time.errors %}
+                    <div style="color: red;">{{ form.cleanup_time.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.job_reference.id_for_label }}">Job Reference:</label>
+                {{ form.job_reference }}
+                {% if form.job_reference.errors %}
+                    <div style="color: red;">{{ form.job_reference.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.operator_name.id_for_label }}">Operator Name:</label>
+                {{ form.operator_name }}
+                {% if form.operator_name.errors %}
+                    <div style="color: red;">{{ form.operator_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div style="color: red;">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Record Usage</button>
+                <a href="{% url 'workshop_app:machine_detail' machine.machine_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:client_detail' client.client_id %}" class="btn btn-secondary">← Back to Client</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Client Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Client ID:</th>
+                    <td>{{ client.client_id }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ client.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Type:</th>
+                    <td>{{ client.get_type_display }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <h3>Basic Information</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.name.id_for_label }}">Name:</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div style="color: red;">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.position.id_for_label }}">Position:</label>
+                {{ form.position }}
+                {% if form.position.errors %}
+                    <div style="color: red;">{{ form.position.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.department.id_for_label }}">Department:</label>
+                {{ form.department }}
+                {% if form.department.errors %}
+                    <div style="color: red;">{{ form.department.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.primary_contact.id_for_label }}">Primary Contact:</label>
+                {{ form.primary_contact }}
+                {% if form.primary_contact.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.primary_contact.help_text }}</div>
+                {% endif %}
+                {% if form.primary_contact.errors %}
+                    <div style="color: red;">{{ form.primary_contact.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <h3>Contact Details</h3>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.direct_email.id_for_label }}">Direct Email:</label>
+                {{ form.direct_email }}
+                {% if form.direct_email.errors %}
+                    <div style="color: red;">{{ form.direct_email.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.phone.id_for_label }}">Phone:</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                    <div style="color: red;">{{ form.phone.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.mobile.id_for_label }}">Mobile:</label>
+                {{ form.mobile }}
+                {% if form.mobile.errors %}
+                    <div style="color: red;">{{ form.mobile.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.communication_preference.id_for_label }}">Communication Preference:</label>
+                {{ form.communication_preference }}
+                {% if form.communication_preference.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.communication_preference.help_text }}</div>
+                {% endif %}
+                {% if form.communication_preference.errors %}
+                    <div style="color: red;">{{ form.communication_preference.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.working_hours.id_for_label }}">Working Hours:</label>
+                {{ form.working_hours }}
+                {% if form.working_hours.errors %}
+                    <div style="color: red;">{{ form.working_hours.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div style="color: red;">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Save Contact</button>
+                <a href="{% url 'workshop_app:client_detail' client.client_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,420 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ material.name }} | Materials | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:material_list' %}" class="btn btn-secondary">← Back to Materials</a>
+    </div>
+    
+    {% if messages %}
+        <div style="margin-bottom: 1rem;">
+            {% for message in messages %}
+                <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <h2>Material: {{ material.get_display_name }}</h2>
+    
+    {% if material.is_low_stock %}
+        <div class="low-stock">
+            <p>Warning: This material is below the minimum stock level!</p>
+        </div>
+    {% endif %}
+    
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <!-- Left Column: Basic Info -->
+        <div style="flex: 2; min-width: 300px;">
+            <h3>Basic Information</h3>
+            <table>
+                <tr>
+                    <th>Material ID:</th>
+                    <td>{{ material.material_id }}</td>
+                </tr>
+                {% if material.serial_number %}
+                <tr>
+                    <th>Serial Number:</th>
+                    <td>{{ material.serial_number }}</td>
+                </tr>
+                {% endif %}
+                {% if material.supplier_sku %}
+                <tr>
+                    <th>Supplier SKU:</th>
+                    <td>{{ material.supplier_sku }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Name:</th>
+                    <td>{{ material.name }}</td>
+                </tr>
+                <tr>
+                    <th>Category:</th>
+                    <td>{{ material.material_type.category.name }} ({{ material.material_type.category.code }})</td>
+                </tr>
+                <tr>
+                    <th>Type:</th>
+                    <td>{{ material.material_type.name }} ({{ material.material_type.code }})</td>
+                </tr>
+                <tr>
+                    <th>Color:</th>
+                    <td>{{ material.color|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Dimensions:</th>
+                    <td>{{ material.dimensions|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Location:</th>
+                    <td>{{ material.location_in_workshop|default:"Not specified" }}</td>
+                </tr>
+                {% if material.created_by %}
+                <tr>
+                    <th>Created By:</th>
+                    <td>{{ material.created_by.get_full_name|default:material.created_by.username }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Created On:</th>
+                    <td>{{ material.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Supplier Information</h3>
+            <table>
+                <tr>
+                    <th>Supplier:</th>
+                    <td>{{ material.supplier_name|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Brand:</th>
+                    <td>{{ material.brand_name|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Purchase Date:</th>
+                    <td>{{ material.purchase_date|date:"Y-m-d"|default:"Not specified" }}</td>
+                </tr>
+                <tr>
+                    <th>Price per Unit:</th>
+                    <td>{% if material.price_per_unit %}CHF{{ material.price_per_unit }}{% else %}Not specified{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Expiration Date:</th>
+                    <td>{{ material.expiration_date|date:"Y-m-d"|default:"Not applicable" }}</td>
+                </tr>
+            </table>
+            
+            <h3>Notes</h3>
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                {% if material.notes %}
+                    {{ material.notes|linebreaks }}
+                {% else %}
+                    <p>No notes available.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right Column: Stock Info and QR Code -->
+        <div style="flex: 1; min-width: 300px;">
+            <h3>Inventory Information</h3>
+            <table>
+                <tr>
+                    <th>Current Stock:</th>
+                    <td {% if material.is_low_stock %}class="low-stock"{% endif %}>
+                        {{ material.current_stock }} {{ material.unit_of_measurement }}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Minimum Stock Level:</th>
+                    <td>
+                        {% if material.minimum_stock_level %}
+                            {{ material.minimum_stock_level }} {{ material.unit_of_measurement }}
+                        {% else %}
+                            Not set
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>Low Stock Alert:</th>
+                    <td>{{ material.minimum_stock_alert|yesno:"Enabled,Disabled" }}</td>
+                </tr>
+                <tr>
+                    <th>Project Association:</th>
+                    <td>{{ material.project_association|default:"None" }}</td>
+                </tr>
+            </table>
+            
+            <h3>QR Code</h3>
+            {% if material.qr_code %}
+                <div style="text-align: center; margin: 1rem 0;">
+                    <img src="{{ material.qr_code.url }}" alt="QR Code for {{ material.material_id }}" style="max-width: 100%;">
+                    <p>Material ID: {{ material.material_id }}</p>
+                    {% if material.serial_number %}
+                    <p>Serial Number: {{ material.serial_number }}</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>No QR code available.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Attachments Section -->
+    <h3>Attachments</h3>
+
+    <!-- Expandable sections for each attachment type -->
+    <div class="attachment-container">
+        {% if grouped_attachments %}
+            {% for attachment_type, attachments in grouped_attachments.items %}
+                <div class="attachment-group">
+                    <h4 class="attachment-type-toggle" onclick="toggleAttachmentGroup(this)">
+                        {{ attachment_type.name }} ({{ attachments|length }})
+                        <span class="toggle-icon">▼</span>
+                    </h4>
+                    <div class="attachment-list">
+                        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                            {% for attachment in attachments %}
+                                <div style="border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; width: 200px;">
+                                    <div style="text-align: center; margin-bottom: 0.5rem;">
+                                        {% if attachment.is_image %}
+                                            <img src="{{ attachment.file.url }}" alt="{{ attachment.description }}" style="max-width: 100%; max-height: 100px;">
+                                        {% elif attachment.is_pdf %}
+                                            <div style="font-size: 3rem; color: #dc3545;">
+                                                <i class="fas fa-file-pdf"></i>
+                                                📄
+                                            </div>
+                                        {% else %}
+                                            <div style="font-size: 3rem; color: #007bff;">
+                                                <i class="fas fa-file"></i>
+                                                📁
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    {% if attachment.description %}
+                                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">{{ attachment.description }}</p>
+                                    {% endif %}
+                                    <p style="margin: 0.25rem 0; font-size: 0.8rem; color: #666;">{{ attachment.upload_date|date:"Y-m-d" }}</p>
+                                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.8rem;">
+                                        <a href="{% url 'workshop_app:material_attachment_view' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">View</a>
+                                        <a href="{% url 'workshop_app:material_attachment_download' attachment.id %}" class="btn" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Download</a>
+                                        <a href="{% url 'workshop_app:material_attachment_delete' attachment.id %}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Delete</a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No attachments available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Upload Attachment Form -->
+    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+        <h4>Upload New Attachment</h4>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="upload_attachment" value="1">
+            
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ attachment_form.attachment_type.id_for_label }}">Type:</label>
+                    {{ attachment_form.attachment_type }}
+                    {% if attachment_form.attachment_type.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.attachment_type.help_text }}</div>
+                    {% endif %}
+                    {% if attachment_form.attachment_type.errors %}
+                        <div style="color: red;">{{ attachment_form.attachment_type.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <label for="{{ attachment_form.new_type.id_for_label }}">Or New Type:</label>
+                    {{ attachment_form.new_type }}
+                    {% if attachment_form.new_type.help_text %}
+                        <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.new_type.help_text }}</div>
+                    {% endif %}
+                    {% if attachment_form.new_type.errors %}
+                        <div style="color: red;">{{ attachment_form.new_type.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ attachment_form.description.id_for_label }}">Description:</label>
+                {{ attachment_form.description }}
+                {% if attachment_form.description.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.description.help_text }}</div>
+                {% endif %}
+                {% if attachment_form.description.errors %}
+                    <div style="color: red;">{{ attachment_form.description.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 0.5rem;">
+                <label for="{{ attachment_form.file.id_for_label }}">File:</label>
+                {{ attachment_form.file }}
+                {% if attachment_form.file.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ attachment_form.file.help_text }}</div>
+                {% endif %}
+                {% if attachment_form.file.errors %}
+                    <div style="color: red;">{{ attachment_form.file.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 0.5rem;">
+                <label for="multiple_files">Additional Files (optional):</label>
+                <input type="file" name="files[]" id="multiple_files" multiple>
+                <div style="font-size: 0.8rem; color: #666;">You can select multiple additional files to upload at once</div>
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">Upload Attachment(s)</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Add JavaScript for toggle functionality -->
+    <script>
+        function toggleAttachmentGroup(element) {
+            // Toggle the visibility of the attachment list
+            var attachmentList = element.nextElementSibling;
+            if (attachmentList.style.display === "none") {
+                attachmentList.style.display = "block";
+                element.querySelector('.toggle-icon').textContent = "▼";
+            } else {
+                attachmentList.style.display = "none";
+                element.querySelector('.toggle-icon').textContent = "►";
+            }
+        }
+        
+        // Initialize all attachment groups to be expanded
+        document.addEventListener('DOMContentLoaded', function() {
+            var attachmentGroups = document.querySelectorAll('.attachment-list');
+            attachmentGroups.forEach(function(group) {
+                group.style.display = "block";
+            });
+        });
+    </script>
+
+    <!-- Add CSS for attachment groups -->
+    <style>
+        .attachment-container {
+            margin-bottom: 2rem;
+        }
+        
+        .attachment-group {
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .attachment-type-toggle {
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            margin: 0;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .attachment-list {
+            padding: 1rem;
+        }
+        
+        .toggle-icon {
+            font-size: 0.8rem;
+        }
+    </style>
+    
+    <!-- Material Entry History -->
+    <h3>Purchase History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Quantity</th>
+                <th>Price per Unit</th>
+                <th>Supplier</th>
+                <th>Receipt</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.purchase_date|date:"Y-m-d" }}</td>
+                    <td>{{ entry.quantity }} {{ material.unit_of_measurement }}</td>
+                    <td>€{{ entry.price_per_unit }}</td>
+                    <td>{{ entry.supplier_name|default:"Not specified" }}</td>
+                    <td>
+                        {% if entry.receipt %}
+                            <a href="{{ entry.receipt.url }}" target="_blank" class="btn">View Receipt</a>
+                        {% else %}
+                            No receipt
+                        {% endif %}
+                    </td>
+                    <td>{{ entry.notes|truncatechars:50 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No purchase history available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>Usage and Returns</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Operator</th>
+                <th>Job Reference</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in material.transactions.all|slice:":10" %}
+                <tr>
+                    <td>{{ transaction.transaction_date|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if transaction.transaction_type == 'consumption' %}
+                            <span style="color: red;">Used</span>
+                        {% else %}
+                            <span style="color: green;">Returned</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.quantity }} {{ material.unit_of_measurement }}</td>
+                    <td>{{ transaction.operator_name|default:"Not specified" }}</td>
+                    <td>{{ transaction.job_reference|default:"-" }}</td>
+                    <td>{{ transaction.notes|truncatechars:50|default:"-" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No usage or returns recorded.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if material.transactions.count > 10 %}
+        <div style="text-align: right; margin-top: 0.5rem;">
+            <small>Showing 10 most recent transactions.</small>
+        </div>
+    {% endif %}
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'workshop_app:material_update' material.material_id %}" class="btn">Edit Material</a>
+        <a href="{% url 'workshop_app:material_entry_add' material.material_id %}" class="btn">Add Purchase</a>
+        <a href="{% url 'workshop_app:material_transaction' material.material_id %}?type=consumption" class="btn">Use Material</a>
+        <a href="{% url 'workshop_app:material_transaction' material.material_id %}?type=return" class="btn">Return Material</a>
+        <a href="{% url 'workshop_app:material_delete' material.material_id %}" class="btn btn-secondary">Delete Material</a>
+        <a href="#" class="btn btn-secondary" onclick="window.print();">Print QR Code</a>
+    </div>
+{% endblock %}

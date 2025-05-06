@@ -1,0 +1,113 @@
+{% extends 'workshop_app/base.html' %}
+
+{% block title %}{{ title }} | Workshop Management System{% endblock %}
+
+{% block content %}
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'workshop_app:material_detail' material.material_id %}" class="btn btn-secondary">← Back to Material</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    <div style="max-width: 600px; margin: 0 auto;">
+        {% if messages %}
+            <div style="margin-bottom: 1rem;">
+                {% for message in messages %}
+                    <div style="padding: 0.5rem 1rem; background-color: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; border-radius: 4px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+            <h3>Material Information</h3>
+            <table style="width: 100%;">
+                <tr>
+                    <th style="text-align: left; width: 150px;">Material ID:</th>
+                    <td>{{ material.material_id }}</td>
+                </tr>
+                {% if material.serial_number %}
+                <tr>
+                    <th style="text-align: left;">Serial Number:</th>
+                    <td>{{ material.serial_number }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th style="text-align: left;">Name:</th>
+                    <td>{{ material.name }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Current Stock:</th>
+                    <td>{{ material.current_stock }} {{ material.unit_of_measurement }}</td>
+                </tr>
+                <tr>
+                    <th style="text-align: left;">Current Price:</th>
+                    <td>{% if material.price_per_unit %}CHF{{ material.price_per_unit }}{% else %}Not set{% endif %}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <h3>{% if quick_purchase %}Quick Purchase Information{% else %}New Purchase Information{% endif %}</h3>
+            
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
+                <label for="{{ form.quantity.id_for_label }}">Quantity:</label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                    <div style="color: red;">{{ form.quantity.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem; {% if quick_purchase and form.price_per_unit.value %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
+                <label for="{{ form.price_per_unit.id_for_label }}">Price per Unit:</label>
+                {{ form.price_per_unit }}
+                {% if form.price_per_unit.errors %}
+                    <div style="color: red;">{{ form.price_per_unit.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
+                <label for="{{ form.purchase_date.id_for_label }}">Purchase Date:</label>
+                {{ form.purchase_date }}
+                {% if form.purchase_date.errors %}
+                    <div style="color: red;">{{ form.purchase_date.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem; {% if quick_purchase and form.supplier_name.value %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
+                <label for="{{ form.supplier_name.id_for_label }}">Supplier Name:</label>
+                {{ form.supplier_name }}
+                {% if form.supplier_name.errors %}
+                    <div style="color: red;">{{ form.supplier_name.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem; {% if quick_purchase %}background-color: #e8f4ff; padding: 0.5rem; border-left: 4px solid #007bff;{% endif %}">
+                <label for="{{ form.receipt.id_for_label }}">Receipt Upload:</label>
+                {{ form.receipt }}
+                {% if form.receipt.help_text %}
+                    <div style="font-size: 0.8rem; color: #666;">{{ form.receipt.help_text }}</div>
+                {% endif %}
+                {% if form.receipt.errors %}
+                    <div style="color: red;">{{ form.receipt.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label for="{{ form.notes.id_for_label }}">Notes:</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div style="color: red;">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <button type="submit" class="btn">{% if quick_purchase %}Record Purchase{% else %}Add Purchase{% endif %}</button>
+                <a href="{% url 'workshop_app:material_detail' material.material_id %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
