@@ -7,8 +7,7 @@ from .attachment_views import (
     material_attachment_view, material_attachment_download
 )
 from .scanner_views import (
-    scanner_view, material_lookup, material_transaction,
-    transaction_success
+    scanner_view, material_lookup
 )
 from .machine_views import (
     machine_list, machine_detail,
@@ -50,4 +49,3 @@ from .job_financial_views import (
 from .test_view import test_view
 from .user_views import profile_view
 from .dashboard_view import dashboard_view
-

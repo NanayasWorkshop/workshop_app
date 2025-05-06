@@ -4,8 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 
-from ..models import Material, MaterialTransaction, MaterialAttachment, AttachmentType
-from ..forms import MaterialTransactionForm
+from ..models import Material, MaterialAttachment, AttachmentType, StaffSettings
 
 @login_required
 def scanner_view(request):
@@ -54,6 +53,14 @@ def material_lookup(request):
             # Product attachment type doesn't exist
             pass
         
+        # Get active job from user settings
+        active_job = None
+        try:
+            staff_settings = StaffSettings.objects.get(user=request.user)
+            active_job = staff_settings.active_job
+        except StaffSettings.DoesNotExist:
+            pass
+            
         # Return material details as JSON
         data = {
             'found': True,
@@ -66,9 +73,15 @@ def material_lookup(request):
             'supplier_name': material.supplier_name,
             'price_per_unit': str(material.price_per_unit) if material.price_per_unit else '',
             'detail_url': f"/materials/{material.material_id}/",
-            'transaction_url': f"/materials/{material.material_id}/transaction/",
             'has_product_image': product_image is not None,
+            'has_active_job': active_job is not None,
         }
+        
+        # Add job-related URLs if there's an active job
+        if active_job:
+            data['job_material_url'] = f"/jobs/material/add/?material_id={material.material_id}"
+            data['active_job_name'] = active_job.project_name
+            data['active_job_id'] = active_job.job_id
         
         # Add the image URL if available
         if product_image:
@@ -91,79 +104,3 @@ def material_lookup(request):
             'message': str(e),
             'scanned_id': identifier  # Include the scanned ID in the response
         }, status=500)
-
-@login_required
-def material_transaction(request, material_id):
-    """
-    Handle material consumption or return after scanning
-    """
-    # Try to find by material_id or serial_number
-    material = get_object_or_404(Material, Q(material_id=material_id) | Q(serial_number=material_id))
-    
-    # Determine transaction type (consumption or return)
-    transaction_type = request.GET.get('type', 'consumption')
-    if transaction_type not in ['consumption', 'return']:
-        transaction_type = 'consumption'  # Default to consumption
-    
-    if request.method == 'POST':
-        form = MaterialTransactionForm(
-            request.POST, 
-            material=material, 
-            transaction_type=transaction_type
-        )
-        
-        if form.is_valid():
-            transaction = form.save(commit=False)
-            
-            # Set the operator name to the current user if not already set
-            if not transaction.operator_name or transaction.operator_name.strip() == '':
-                transaction.operator_name = request.user.get_full_name() or request.user.username
-                
-            transaction.save()
-            
-            # Set success message
-            action = "consumed" if transaction_type == 'consumption' else "returned to inventory"
-            messages.success(
-                request, 
-                f"Successfully {action} {transaction.quantity} {material.unit_of_measurement} of {material.name}"
-            )
-            
-            # Redirect to success page
-            return redirect('workshop_app:transaction_success', transaction_id=transaction.id)
-    else:
-        # Pre-fill operator name with current user and make it read-only
-        initial = {
-            'operator_name': request.user.get_full_name() or request.user.username
-        }
-        
-        form = MaterialTransactionForm(
-            material=material, 
-            transaction_type=transaction_type,
-            initial=initial,
-            operator_readonly=True  # New parameter to make operator field read-only
-        )
-    
-    context = {
-        'material': material,
-        'form': form,
-        'transaction_type': transaction_type,
-        'title': 'Material Consumption' if transaction_type == 'consumption' else 'Material Return',
-        'action_verb': 'Use' if transaction_type == 'consumption' else 'Return',
-    }
-    
-    return render(request, 'workshop_app/materials/transaction_form.html', context)
-
-@login_required
-def transaction_success(request, transaction_id):
-    """
-    Show transaction success page with details and next actions
-    """
-    transaction = get_object_or_404(MaterialTransaction, id=transaction_id)
-    
-    context = {
-        'transaction': transaction,
-        'material': transaction.material,
-        'title': 'Transaction Complete',
-    }
-    
-    return render(request, 'workshop_app/materials/transaction_success.html', context)

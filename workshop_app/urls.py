@@ -5,7 +5,7 @@ from .views import (
     material_create, material_update, material_delete,
     material_entry_add, material_attachment_delete,
     material_attachment_view, material_attachment_download,
-    scanner_view, material_lookup, material_transaction, transaction_success,
+    scanner_view, material_lookup,
     machine_list, machine_detail,
     machine_create, machine_update, machine_delete,
     machine_status_update,
@@ -58,11 +58,9 @@ urlpatterns = [
     path('attachments/<int:attachment_id>/download/', material_attachment_download, name='material_attachment_download'),
     path('attachments/<int:attachment_id>/delete/', material_attachment_delete, name='material_attachment_delete'),
     
-    # Material Scanner URLs
+    # Material Scanner URLs - just keep scanner and lookup
     path('scanner/', scanner_view, name='scanner'),
     path('api/material-lookup/', material_lookup, name='material_lookup'),
-    path('materials/<str:material_id>/transaction/', material_transaction, name='material_transaction'),
-    path('transactions/<int:transaction_id>/success/', transaction_success, name='transaction_success'),
     
     # Machine URLs
     path('machines/', machine_list, name='machine_list'),
