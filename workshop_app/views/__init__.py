@@ -31,8 +31,23 @@ from .client_views import (
     contact_create, contact_update, contact_delete,
     communication_add, document_delete
 )
+from .job_views import (
+    job_list, job_detail, job_create, job_update, job_delete,
+    job_status_change, job_milestone_add, job_milestone_update
+)
+from .job_scanner_views import (
+    job_scanner_view, job_lookup, job_activate, job_deactivate
+)
+from .job_material_views import (
+    job_material_add, job_material_delete, job_material_return
+)
+from .job_machine_views import (
+    job_machine_add, job_machine_end, job_machine_list
+)
+from .job_financial_views import (
+    job_financial_summary, job_report
+)
 from .test_view import test_view
 from .user_views import profile_view
 from .dashboard_view import dashboard_view
 
-# This allows importing views directly from the views module
