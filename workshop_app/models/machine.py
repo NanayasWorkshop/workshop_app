@@ -50,8 +50,8 @@ class Machine(models.Model):
         ('out_of_order', 'Out of Order')
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
-    # Temporarily commented out to avoid circular dependency
-    # current_job = models.ForeignKey('Job', null=True, blank=True, on_delete=models.SET_NULL)
+    # Use string reference to avoid circular import
+    current_job = models.ForeignKey('workshop_app.Job', null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_machines')
     reserved_until = models.DateTimeField(null=True, blank=True)
     
     # Notes
@@ -87,12 +87,3 @@ class Machine(models.Model):
     def is_available(self):
         """Check if the machine is currently available"""
         return self.status == 'active' and self.reserved_until is None
-
-
-class Job(models.Model):
-    """Placeholder Job model to support Machine model foreign key"""
-    job_id = models.CharField(max_length=15, unique=True)
-    project_name = models.CharField(max_length=100)
-    
-    def __str__(self):
-        return f"{self.job_id} - {self.project_name}"

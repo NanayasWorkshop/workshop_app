@@ -59,8 +59,8 @@ class JobMaterialForm(forms.ModelForm):
         if commit:
             instance.save()
             
-            # Update material stock
-            if instance.result != 'returned':  # Don't reduce stock for returns
+            # Update material stock if not a 'returned' record
+            if instance.result != 'returned':
                 material = instance.material
                 material.current_stock -= instance.quantity
                 material.save(update_fields=['current_stock'])

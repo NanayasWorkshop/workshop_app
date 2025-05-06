@@ -22,6 +22,18 @@ class JobStatus(models.Model):
     def __str__(self):
         return self.name
 
+def get_default_status():
+    """Get or create a default 'Active' status for new jobs"""
+    status, created = JobStatus.objects.get_or_create(
+        name="Active",
+        defaults={
+            "description": "Job is currently active",
+            "color_code": "#007bff",
+            "order": 1
+        }
+    )
+    return status.id
+
 class Job(models.Model):
     """
     Main Job model for tracking projects.
@@ -30,7 +42,7 @@ class Job(models.Model):
     # Basic Job Information
     job_id = models.CharField(max_length=15, unique=True)
     project_name = models.CharField(max_length=100)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='jobs')
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='jobs', null=True, blank=True)
     contact_person = models.ForeignKey(ContactPerson, on_delete=models.SET_NULL, null=True, blank=True)
     # original_quote = models.ForeignKey('Quote', on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField(blank=True)
@@ -38,7 +50,7 @@ class Job(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_jobs')
     
     # Status Fields
-    status = models.ForeignKey(JobStatus, on_delete=models.PROTECT, related_name='jobs')
+    status = models.ForeignKey(JobStatus, on_delete=models.PROTECT, related_name='jobs', default=get_default_status)
     percent_complete = models.IntegerField(default=0, help_text="0-100")
     
     # Priority Options
@@ -77,23 +89,28 @@ class Job(models.Model):
             # Get current year
             year = timezone.now().year
             
-            # Find the highest job number for current year
-            last_job = Job.objects.filter(
-                job_id__startswith=f"JOB-{year}"
-            ).order_by('-job_id').first()
-            
-            if last_job:
-                # Extract the sequential number and increment
-                try:
-                    last_num = int(last_job.job_id.split('-')[-1])
-                    next_num = last_num + 1
-                except (ValueError, IndexError):
-                    next_num = 1
+            # Different format for personal jobs
+            if self.is_personal and self.owner:
+                username = self.owner.username[:4].upper()
+                self.job_id = f"PERS-{username}-{year}"
             else:
-                next_num = 1
+                # Find the highest job number for current year
+                last_job = Job.objects.filter(
+                    job_id__startswith=f"JOB-{year}"
+                ).order_by('-job_id').first()
                 
-            # Format: JOB-YYYY-XXXX
-            self.job_id = f"JOB-{year}-{next_num:04d}"
+                if last_job:
+                    # Extract the sequential number and increment
+                    try:
+                        last_num = int(last_job.job_id.split('-')[-1])
+                        next_num = last_num + 1
+                    except (ValueError, IndexError):
+                        next_num = 1
+                else:
+                    next_num = 1
+                    
+                # Format: JOB-YYYY-XXXX
+                self.job_id = f"JOB-{year}-{next_num:04d}"
             
         # Generate QR code for new jobs
         if not self.qr_code and self.job_id:
